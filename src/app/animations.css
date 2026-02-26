@@ -1,0 +1,171 @@
+/* Optimized Animations for Better Performance */
+@import url("https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css");
+
+:root {
+  --animation-duration-fast: 300ms;
+  --animation-duration-normal: 500ms;
+  --animation-duration-slow: 800ms;
+  --transition-timing: cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-timing-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+/* Smooth Scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Optimized Carousel Animations */
+.carousel-item {
+  transition: opacity var(--animation-duration-normal) var(--transition-timing);
+  will-change: opacity, transform;
+  backface-visibility: hidden;
+  perspective: 1000px;
+}
+
+.carousel-fade .carousel-item {
+  opacity: 0;
+  transition-property: opacity;
+}
+
+.carousel-fade .carousel-item.active {
+  opacity: 1;
+}
+
+/* Hero Container Animations */
+.carousel-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  min-height: 100vh;
+  will-change: transform;
+}
+
+.carousel-content {
+  animation: slideUp var(--animation-duration-slow) var(--transition-timing)
+    forwards;
+  will-change: transform, opacity;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Smooth Button Hover Effects */
+.btn-menu,
+.btn-book,
+.book-a-table-btn {
+  transition: all var(--animation-duration-fast) var(--transition-timing);
+  will-change: transform, background-color, box-shadow;
+}
+
+.btn-menu:hover,
+.btn-book:hover,
+.book-a-table-btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+}
+
+/* Navigation Menu Animations */
+.navbar {
+  transition: all var(--animation-duration-fast) var(--transition-timing);
+}
+
+.navbar ul li a {
+  position: relative;
+  transition: color var(--animation-duration-fast) var(--transition-timing);
+}
+
+.navbar ul li a::after {
+  content: "";
+  position: absolute;
+  width: 0;
+  height: 2px;
+  bottom: -5px;
+  left: 50%;
+  background-color: currentColor;
+  transition: all var(--animation-duration-fast) var(--transition-timing);
+  transform: translateX(-50%);
+}
+
+.navbar ul li a:hover::after,
+.navbar ul li a.active::after {
+  width: 100%;
+}
+
+/* Gallery Image Hover Effects */
+.gallery-item {
+  overflow: hidden;
+  position: relative;
+}
+
+.gallery-item img {
+  transition: transform var(--animation-duration-normal)
+    var(--transition-timing);
+  will-change: transform;
+}
+
+.gallery-item:hover img {
+  transform: scale(1.05);
+}
+
+.gallery-item::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0);
+  transition: background var(--animation-duration-fast) var(--transition-timing);
+  z-index: 1;
+}
+
+.gallery-item:hover::before {
+  background: rgba(0, 0, 0, 0.3);
+}
+
+/* Fade In Animation on Scroll */
+.fade-in {
+  opacity: 0;
+  transform: translateY(20px);
+  transition:
+    opacity var(--animation-duration-normal) var(--transition-timing),
+    transform var(--animation-duration-normal) var(--transition-timing);
+  will-change: opacity, transform;
+}
+
+.fade-in.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Section Transitions */
+section {
+  transition: all var(--animation-duration-normal) var(--transition-timing);
+}
+
+/* Optimize performance for mobile devices */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* GPU Acceleration */
+.animate__animated {
+  will-change: transform, opacity;
+  backface-visibility: hidden;
+  perspective: 1000px;
+}
