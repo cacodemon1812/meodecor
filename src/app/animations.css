@@ -1,6 +1,4 @@
 /* Optimized Animations for Better Performance */
-@import url("https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css");
-
 :root {
   --animation-duration-fast: 300ms;
   --animation-duration-normal: 500ms;
