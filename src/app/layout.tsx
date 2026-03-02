@@ -58,16 +58,11 @@ export const metadata: Metadata = {
   creator: "Meo Decor",
   publisher: "Meo Decor",
 
-  /* ── Icons ─────────────────────────────────────────────────── */
+  /* ── Icons — handled by src/app/icon.tsx (App Router convention)
+        apple-touch-icon và shortcut remain here as supplementary ── */
   icons: {
-    icon: [
-      { url: LOGO, type: "image/png" },
-      { url: LOGO, sizes: "32x32", type: "image/png" },
-      { url: LOGO, sizes: "16x16", type: "image/png" },
-    ],
     shortcut: LOGO,
-    apple: LOGO,
-    other: [{ rel: "mask-icon", url: LOGO }],
+    apple: { url: LOGO, type: "image/png" },
   },
 
   /* ── Open Graph ─────────────────────────────────────────────── */
@@ -140,6 +135,10 @@ export default function RootLayout({
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        {/* Favicon — explicit tags override favicon.ico default */}
+        <link rel="icon" href={LOGO} type="image/png" />
+        <link rel="shortcut icon" href={LOGO} type="image/png" />
+        <link rel="apple-touch-icon" href={LOGO} />
         {/* Vendor CSS */}
         <link
           href="/assets/vendor/bootstrap/css/bootstrap.min.css"
