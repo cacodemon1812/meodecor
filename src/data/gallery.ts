@@ -10,14 +10,14 @@ export const BOY_IMAGES = [
 ];
 
 export const GIRL_IMAGES = [
-  "/assets/img/MauBeGai/1.jpg",
-  "/assets/img/MauBeGai/2.jpg",
-  "/assets/img/MauBeGai/3.jpg",
-  "/assets/img/MauBeGai/4.jpg",
-  "/assets/img/MauBeGai/5.jpg",
-  "/assets/img/MauBeGai/6.jpg",
-  "/assets/img/MauBeGai/7.jpg",
-  "/assets/img/MauBeGai/8.jpg",
+  "/assets/img/maubegai/1.jpg",
+  "/assets/img/maubegai/2.jpg",
+  "/assets/img/maubegai/3.jpg",
+  "/assets/img/maubegai/4.jpg",
+  "/assets/img/maubegai/5.jpg",
+  "/assets/img/maubegai/6.jpg",
+  "/assets/img/maubegai/7.jpg",
+  "/assets/img/maubegai/8.jpg",
 ];
 
 export const LUXURY_IMAGES = [
