@@ -123,7 +123,7 @@ export const PRICING_DATA: Package[] = [
     title: "Gói Tiêu Chuẩn",
     price: "2.799.000",
     currency: "VND",
-    image: "/assets/img/maubegai/12.jpg",
+    image: "/assets/img/maubegai/37.jpg",
     tagline: "Phù hợp gia đình vừa và nhỏ.",
     bullets: ["Backdrop", "Bóng bay trang trí", "Bàn quà"],
   },
