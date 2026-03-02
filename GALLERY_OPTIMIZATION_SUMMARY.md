@@ -12,7 +12,7 @@
 
 - Verified all image paths are correct
 - Images now load from proper directories:
-  - `/assets/img/maubegai/` (Boys collection)
+  - `/assets/img/MauBeGai/` (Boys collection)
   - `/assets/img/maubetrai/` (Girls collection)
   - `/assets/img/SangSinMin/` (Premium collection)
 - Implemented proper Next.js Image optimization

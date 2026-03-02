@@ -11,7 +11,7 @@ import { BOY_IMAGES, GIRL_IMAGES, LUXURY_IMAGES } from "../data/gallery";
 
 const GALLERY_TABS = [
   { id: "maubetrai", label: "Mẫu bé trai", images: BOY_IMAGES },
-  { id: "maubegai", label: "Mẫu bé gái", images: GIRL_IMAGES },
+  { id: "MauBeGai", label: "Mẫu bé gái", images: GIRL_IMAGES },
   { id: "mausangsinmin", label: "Mẫu sang sịn mịn", images: LUXURY_IMAGES },
 ];
 

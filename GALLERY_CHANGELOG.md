@@ -100,7 +100,7 @@ const galleryItems: GalleryItem[] = [
   // ... existing items
   {
     id: "b5",
-    src: "/assets/img/maubegai/5.jpg",
+    src: "/assets/img/MauBeGai/5.jpg",
     category: "boys",
     alt: "New decoration theme",
     title: "New Theme",

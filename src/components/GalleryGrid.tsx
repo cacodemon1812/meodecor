@@ -18,7 +18,7 @@ const galleryItems: GalleryItem[] = [
   // Boys collection
   {
     id: "b1",
-    src: "/assets/img/maubegai/1.jpg",
+    src: "/assets/img/MauBeGai/1.jpg",
     category: "boys",
     alt: "Mẫu trang trí cho bé trai 1",
     title: "Chủ đề Siêu Nhân",
@@ -26,7 +26,7 @@ const galleryItems: GalleryItem[] = [
   },
   {
     id: "b2",
-    src: "/assets/img/maubegai/2.jpg",
+    src: "/assets/img/MauBeGai/2.jpg",
     category: "boys",
     alt: "Mẫu trang trí cho bé trai 2",
     title: "Chủ đề Khám Phá",
@@ -34,7 +34,7 @@ const galleryItems: GalleryItem[] = [
   },
   {
     id: "b3",
-    src: "/assets/img/maubegai/3.jpg",
+    src: "/assets/img/MauBeGai/3.jpg",
     category: "boys",
     alt: "Mẫu trang trí cho bé trai 3",
     title: "Chủ đề Xe Đua",
@@ -42,7 +42,7 @@ const galleryItems: GalleryItem[] = [
   },
   {
     id: "b4",
-    src: "/assets/img/maubegai/4.jpg",
+    src: "/assets/img/MauBeGai/4.jpg",
     category: "boys",
     alt: "Mẫu trang trí cho bé trai 4",
     title: "Chủ đề Không Gian",

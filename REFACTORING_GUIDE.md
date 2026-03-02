@@ -25,7 +25,7 @@ src/
 ```typescript
 export const NAV_LINKS = [
   { label: "Trang Chủ", href: "#hero", id: "home" },
-  { label: "Mẫu cho bé trai", href: "#maubegai", id: "boy" },
+  { label: "Mẫu cho bé trai", href: "#MauBeGai", id: "boy" },
   // ... Thêm hoặc chỉnh sửa tại đây
 ];
 ```

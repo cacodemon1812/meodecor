@@ -3,7 +3,7 @@ import type { NavLink, HeroSlide, Package, EventItem } from "@/types";
 
 export const NAV_LINKS: NavLink[] = [
   { label: "Trang Chủ", href: "#hero", id: "home" },
-  { label: "Mẫu cho bé trai", href: "#maubegai", id: "boy" },
+  { label: "Mẫu cho bé trai", href: "#MauBeGai", id: "boy" },
   { label: "Mẫu cho bé gái", href: "#maubetrai", id: "girl" },
   { label: "Mẫu sang xịn mịn", href: "#mausangsinmin", id: "premium" },
   { label: "Liên hệ", href: "#contact", id: "contact" },
