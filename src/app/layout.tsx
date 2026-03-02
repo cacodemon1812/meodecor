@@ -26,11 +26,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="vi">
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <link rel="icon" href="/assets/img/logo/logo.png" />
         <link rel="apple-touch-icon" href="/assets/img/apple-touch-icon.png" />
         {/* Vendor CSS - public/* files must be loaded via Link tags */}
         <link

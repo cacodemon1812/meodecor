@@ -4,44 +4,18 @@ import Hero from "../components/Hero";
 import PricingSection from "../components/PricingSection";
 import EventsSection from "../components/EventsSection";
 import AboutSection from "../components/AboutSection";
-import GallerySection from "../components/GallerySection";
+import GalleryTabsClient from "../components/GalleryTabsClient";
 import ContactSection from "../components/ContactSection";
 import Footer from "../components/Footer";
-import LightboxInit from "../components/LightboxInit";
+import { BOY_IMAGES, GIRL_IMAGES, LUXURY_IMAGES } from "../data/gallery";
+
+const GALLERY_TABS = [
+  { id: "maubetrai", label: "Mẫu bé trai", images: BOY_IMAGES },
+  { id: "maubegai", label: "Mẫu bé gái", images: GIRL_IMAGES },
+  { id: "mausangsinmin", label: "Mẫu sang sịn mịn", images: LUXURY_IMAGES },
+];
 
 export default function Home() {
-  // arrays reused for the small galleries
-  const boyImages = [
-    "/assets/img/maubetrai/1.jpg",
-    "/assets/img/maubetrai/2.jpg",
-    "/assets/img/maubetrai/3.jpg",
-    "/assets/img/maubetrai/4.jpg",
-    "/assets/img/maubetrai/5.jpg",
-    "/assets/img/maubetrai/6.jpg",
-    "/assets/img/maubetrai/7.jpg",
-    "/assets/img/maubetrai/8.jpg",
-  ];
-  const girlImages = [
-    "/assets/img/MauBeGai/1.jpg",
-    "/assets/img/MauBeGai/2.jpg",
-    "/assets/img/MauBeGai/3.jpg",
-    "/assets/img/MauBeGai/4.jpg",
-    "/assets/img/MauBeGai/5.jpg",
-    "/assets/img/MauBeGai/6.jpg",
-    "/assets/img/MauBeGai/7.jpg",
-    "/assets/img/MauBeGai/8.jpg",
-  ];
-  const luxuryImages = [
-    "/assets/img/SangSinMin/1.jpg",
-    "/assets/img/SangSinMin/2.jpg",
-    "/assets/img/SangSinMin/3.jpg",
-    "/assets/img/SangSinMin/4.jpg",
-    "/assets/img/SangSinMin/5.jpg",
-    "/assets/img/SangSinMin/6.jpg",
-    "/assets/img/SangSinMin/7.jpg",
-    "/assets/img/SangSinMin/8.jpg",
-  ];
-
   return (
     <>
       <TopBar />
@@ -52,18 +26,10 @@ export default function Home() {
       <EventsSection />
       <AboutSection />
 
-      <GallerySection id="maubetrai" title="Mẫu bé trai" images={boyImages} />
-      <GallerySection id="maubegai" title="Mẫu bé gái" images={girlImages} />
-      <GallerySection
-        id="mausangsinmin"
-        title="Mẫu sang sịn mịn"
-        images={luxuryImages}
-      />
+      <GalleryTabsClient tabs={GALLERY_TABS} />
 
       <ContactSection />
       <Footer />
-
-      <LightboxInit />
     </>
   );
 }

@@ -1,0 +1,171 @@
+/* ============================================================
+   Gallery Tabs — MeoDecor
+   Light warm section — accent: #ffb03b (Dancing Script headings)
+   ============================================================ */
+
+/* ── Section ────────────────────────────────────────────────── */
+.gallery-tabs-section {
+  padding: 70px 0 80px;
+  background: #fdf8f2;
+  position: relative;
+}
+
+/* Hidden nav-link anchors */
+.gallery-anchor {
+  display: block;
+  position: absolute;
+  visibility: hidden;
+  pointer-events: none;
+  margin-top: -90px; /* offset for fixed header */
+}
+
+/* ── Tab bar ────────────────────────────────────────────────── */
+.gallery-tabs {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 2.5rem;
+}
+
+.gallery-tab-btn {
+  padding: 11px 30px;
+  border-radius: 50px;
+  border: 2px solid #e8d5b0;
+  background: #fff;
+  color: #5f5950;
+  font-family: "Poppins", "Saira", system-ui, sans-serif;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  letter-spacing: 0.2px;
+  transition: border-color 200ms ease, color 200ms ease,
+    background 200ms ease, box-shadow 200ms ease, transform 150ms ease;
+}
+
+.gallery-tab-btn:hover {
+  border-color: #ffb03b;
+  color: #ffb03b;
+  transform: translateY(-2px);
+}
+
+.gallery-tab-btn.active {
+  background: #ffb03b;
+  border-color: #ffb03b;
+  color: #fff;
+  box-shadow: 0 6px 18px rgba(255, 176, 59, 0.38);
+  transform: translateY(-2px);
+}
+
+.gallery-tab-btn:focus-visible {
+  outline: 2px solid rgba(255, 176, 59, 0.55);
+  outline-offset: 3px;
+}
+
+/* ── Grid ───────────────────────────────────────────────────── */
+.gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  /* Fade-in on tab switch (key prop triggers remount) */
+  animation: galleryFadeIn 320ms ease both;
+}
+
+@keyframes galleryFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ── Item (the <a> link) ────────────────────────────────────── */
+.gallery-item {
+  display: block;
+  /* Fixed 4:3 aspect ratio — no layout shift */
+  aspect-ratio: 4 / 3;
+  position: relative;
+  overflow: hidden;
+  border-radius: 10px;
+  background: #ede8e0;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+  cursor: pointer;
+  transition: box-shadow 280ms ease, transform 280ms ease;
+}
+
+.gallery-item:hover {
+  box-shadow: 0 14px 30px rgba(0, 0, 0, 0.15);
+  transform: translateY(-4px);
+}
+
+/* ── Image ──────────────────────────────────────────────────── */
+.gallery-img {
+  object-fit: cover;
+  transition: transform 450ms ease;
+}
+
+.gallery-item:hover .gallery-img {
+  transform: scale(1.07);
+}
+
+/* ── Hover overlay ──────────────────────────────────────────── */
+.gallery-img-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(255, 176, 59, 0);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 300ms ease;
+}
+
+.gallery-item:hover .gallery-img-overlay {
+  background: rgba(255, 176, 59, 0.18);
+}
+
+.gallery-img-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.92);
+  font-size: 1.15rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  opacity: 0;
+  transform: scale(0.6);
+  transition: opacity 280ms ease, transform 280ms ease;
+}
+
+.gallery-item:hover .gallery-img-icon {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* ── Responsive ─────────────────────────────────────────────── */
+@media (max-width: 1024px) {
+  .gallery-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+  }
+}
+
+@media (max-width: 640px) {
+  .gallery-tabs-section {
+    padding: 50px 0 60px;
+  }
+
+  .gallery-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+
+  .gallery-tab-btn {
+    font-size: 0.85rem;
+    padding: 8px 18px;
+  }
+}

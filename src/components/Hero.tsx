@@ -1,7 +1,11 @@
 import React from "react";
-import { HERO_SLIDES, CTA_BUTTONS, ANIMATIONS } from "@/data/constants";
+import { fetchHeroSlides, fetchCtaButtons, ANIMATIONS } from "@/data/constants";
 
-export default function Hero() {
+export default async function Hero() {
+  const HERO_SLIDES = await fetchHeroSlides();
+  const CTA_BUTTONS = await fetchCtaButtons();
+
+  // render using fetched data
   return (
     <section id="hero">
       <div className="hero-container">
@@ -11,10 +15,13 @@ export default function Hero() {
           className="carousel slide carousel-fade"
           data-bs-ride="carousel"
         >
-          <ol className="carousel-indicators" id="hero-carousel-indicators"></ol>
+          <ol
+            className="carousel-indicators"
+            id="hero-carousel-indicators"
+          ></ol>
 
           <div className="carousel-inner" role="listbox">
-            {HERO_SLIDES.map((slide, index) => (
+            {HERO_SLIDES.map((slide: any, index: number) => (
               <div
                 key={slide.id}
                 className={`carousel-item ${index === 0 ? "active" : ""}`}
@@ -34,7 +41,10 @@ export default function Hero() {
                     <h2 className={ANIMATIONS.fadeInDown}>
                       <span>{slide.title}</span> {slide.subtitle}
                     </h2>
-                    <p className={ANIMATIONS.fadeInUp} style={{ fontSize: "larger" }}>
+                    <p
+                      className={ANIMATIONS.fadeInUp}
+                      style={{ fontSize: "larger" }}
+                    >
                       {slide.description}
                     </p>
                     <div>

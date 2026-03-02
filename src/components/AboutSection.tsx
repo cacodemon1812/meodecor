@@ -1,6 +1,9 @@
 import React from "react";
+import { fetchAbout } from "@/data/constants";
 
-export default function AboutSection() {
+export default async function AboutSection() {
+  const ABOUT = await fetchAbout();
+
   return (
     <section id="about" className="about">
       <div className="container-fluid">
@@ -19,25 +22,35 @@ export default function AboutSection() {
           </div>
           <div className="col-lg-7 d-flex flex-column justify-content-center align-items-stretch">
             <div className="content">
-              <h2>Bóng Bay Kích Nổ tại <span>Nam Định</span></h2>
-              <p>
-                Bóng kích nổ hiện đang là một trong những xu hướng trang trí mới
-                cho các sự kiện​ quan trọng bởi đem hiệu ứng đẹp, độc đáo.
-              </p>
-              <p className="fst-italic">
-                🎈🎈🎈🎈🎈
-                💁‍♂️ SỐP CAM KẾT : 
-              </p>
+              <h2>
+                {ABOUT.title} <span>MeoDecor</span>
+              </h2>
+              <p>{ABOUT.description}</p>
+              <p className="fst-italic">🎈🎈🎈🎈🎈 💁‍♂️ SỐP CAM KẾT :</p>
               <ul>
-                <li><i className="bx bx-check-double"></i>Sử dụng khí Heli an toàn tuyệt đối.</li>
-                <li><i className="bx bx-check-double"></i>KHÔNG GÂY CHÁY NỔ.</li>
-                <li><i className="bx bx-check-double"></i>Có tem kiểm định của nhà sản xuất.</li>
-                <li><i className="bx bx-check-double"></i>Bơm đủ số lượng bóng nhỏ trong mỗi quả bóng lớn.</li>
-                <li><i className="bx bx-check-double"></i>Phục vụ tận nơi nội thành Nam Định và các tỉnh lân cận!.</li>
+                <li>
+                  <i className="bx bx-check-double"></i>Sử dụng khí Heli an toàn
+                  tuyệt đối.
+                </li>
+                <li>
+                  <i className="bx bx-check-double"></i>KHÔNG GÂY CHÁY NỔ.
+                </li>
+                <li>
+                  <i className="bx bx-check-double"></i>Có tem kiểm định của nhà
+                  sản xuất.
+                </li>
+                <li>
+                  <i className="bx bx-check-double"></i>Bơm đủ số lượng bóng nhỏ
+                  trong mỗi quả bóng lớn.
+                </li>
+                <li>
+                  <i className="bx bx-check-double"></i>Phục vụ tận nơi nội
+                  thành Nam Định và các tỉnh lân cận!.
+                </li>
               </ul>
               <p>
-                💥💥💥Bóng bay kích nổ Nam Định💥💥💥
-                🎈Dịch vụ bóng kích nổ đám cưới, sự kiện tại Nam Định và các tỉnh lân cận
+                💥💥💥Bóng bay kích nổ Nam Định💥💥💥 🎈Dịch vụ bóng kích nổ đám
+                cưới, sự kiện tại Nam Định và các tỉnh lân cận
               </p>
             </div>
           </div>

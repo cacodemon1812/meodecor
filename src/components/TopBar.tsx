@@ -1,4 +1,5 @@
 import React from "react";
+import { TOPBAR_DATA } from "@/data/constants";
 
 export default function TopBar() {
   return (
@@ -8,10 +9,10 @@ export default function TopBar() {
     >
       <div className="container-fluid container-xl d-flex align-items-center justify-content-center justify-content-lg-start">
         <i className="bi bi-phone d-flex align-items-center">
-          <span>0345669006 </span>
+          <span>{TOPBAR_DATA.phone} </span>
         </i>
         <i className="bi bi-clock ms-4 d-none d-lg-flex align-items-center">
-          <span>Số 68/75 Điện Biên - Cửa Bắc - Tp Nam Định.</span>
+          <span>{TOPBAR_DATA.address}</span>
         </i>
       </div>
     </section>

@@ -1,8 +1,12 @@
 import React from "react";
 import Link from "next/link";
-import { NAV_LINKS, CTA_BUTTONS } from "@/data/constants";
+import { fetchNavLinks, fetchCtaButtons } from "@/data/constants";
+import HeaderClient from "./HeaderClient";
 
-export default function Header() {
+export default async function Header() {
+  const NAV_LINKS = await fetchNavLinks();
+  const CTA_BUTTONS = await fetchCtaButtons();
+
   return (
     <header
       id="header"
@@ -16,7 +20,7 @@ export default function Header() {
 
         <nav id="navbar" className="navbar order-last order-lg-0">
           <ul>
-            {NAV_LINKS.map((link) => (
+            {NAV_LINKS.map((link: any) => (
               <li key={link.id}>
                 <a className="nav-link scrollto" href={link.href}>
                   {link.label}
@@ -35,6 +39,7 @@ export default function Header() {
           {CTA_BUTTONS.booking.label}
         </a>
       </div>
+      <HeaderClient />
     </header>
   );
 }

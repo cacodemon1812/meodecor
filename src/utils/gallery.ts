@@ -144,7 +144,7 @@ export const trackImageMetrics = (imageId: string, loadTime: number) => {
  * Get image dimensions for aspect ratio calculation
  */
 export const getImageAspectRatio = (width: number, height: number): string => {
-  const gcd = (a: number, b: number) => (b === 0 ? a : gcd(b, a % b));
+  const gcd = (a: number, b: number): number => (b === 0 ? a : gcd(b, a % b));
   const divisor = gcd(width, height);
   return `${width / divisor} / ${height / divisor}`;
 };
