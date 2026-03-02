@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 });
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://meodecor.info";
-const GA_ID = process.env.NEXT_PUBLIC_GA_ID ?? "G-Y18EWCBSWM";
+const GA_ID = process.env.NEXT_PUBLIC_GA_ID ?? "G-60W773VKRF";
 
 const LOGO = "/assets/img/logo/logo.png";
 const OG_IMAGE = "/assets/img/slidemeo/slide-1.jpg";
