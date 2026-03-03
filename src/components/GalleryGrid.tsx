@@ -223,16 +223,26 @@ export default function GalleryGrid() {
                     className="gallery-image-wrapper relative w-full overflow-hidden shrink-0 bg-gray-100 hover:bg-gray-200 transition-colors"
                     aria-label={`View ${item.title}`}
                   >
-                    <Image
-                      src={item.src}
-                      alt={item.alt}
-                      fill
-                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                      onLoad={() => handleImageLoad(item.id)}
-                      quality={80}
-                      priority={idx < 4}
-                    />
+                    {/^https?:\/\//i.test(item.src) ? (
+                      <img
+                        src={item.src}
+                        alt={item.alt}
+                        onLoad={() => handleImageLoad(item.id)}
+                        className="object-cover transition-transform duration-500 group-hover:scale-105"
+                        style={{ position: "absolute", inset: 0, width: "100%", height: "100%" }}
+                      />
+                    ) : (
+                      <Image
+                        src={item.src}
+                        alt={item.alt}
+                        fill
+                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                        onLoad={() => handleImageLoad(item.id)}
+                        quality={80}
+                        priority={idx < 4}
+                      />
+                    )}
 
                     {/* Loading Skeleton */}
                     {!loadedImages.has(item.id) && (

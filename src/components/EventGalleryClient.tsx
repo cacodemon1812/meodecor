@@ -29,14 +29,24 @@ export default function EventGalleryClient({ images, title }: Props) {
             onClick={() => setLightboxIdx(i)}
             aria-label={`Xem ảnh ${i + 1} – ${title}`}
           >
-            <Image
-              src={src}
-              alt={`${title} – Ảnh ${i + 1}`}
-              fill
-              sizes="(max-width: 480px) 100vw, (max-width: 768px) 50vw, 33vw"
-              className="event-gallery-img"
-              priority={i < 3}
-            />
+            {/https?:\/\//i.test(src) ? (
+              <img
+                src={src}
+                alt={`${title} – Ảnh ${i + 1}`}
+                className="event-gallery-img"
+                onLoad={() => {}}
+                style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}
+              />
+            ) : (
+              <Image
+                src={src}
+                alt={`${title} – Ảnh ${i + 1}`}
+                fill
+                sizes="(max-width: 480px) 100vw, (max-width: 768px) 50vw, 33vw"
+                className="event-gallery-img"
+                priority={i < 3}
+              />
+            )}
             <div className="event-gallery-overlay">
               <span className="event-gallery-icon">⤢</span>
             </div>

@@ -3,7 +3,11 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   images: {
     formats: ["image/webp", "image/avif"],
-    qualities: [75, 80, 90],
+    // Allow external image URLs. Replace or restrict hostnames as needed.
+    remotePatterns: [
+      { protocol: "https", hostname: "**", pathname: "/**" },
+      { protocol: "http", hostname: "**", pathname: "/**" },
+    ],
   },
 };
 
