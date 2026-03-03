@@ -8,11 +8,11 @@ export const NAV_LINKS: NavLink[] = [
   { label: "Mẫu sang xịn mịn", href: "#mausangsinmin", id: "premium" },
   { label: "Liên hệ", href: "#contact", id: "contact" },
 ];
-
+// Ảnh nền khu vục đầu trang
 export const HERO_SLIDES: HeroSlide[] = [
   {
     id: 1,
-    image: "/assets/img/slidemeo/slide-1.jpg",
+    image: "/assets/img/anh nen/anh bia 1.jpg",
     title: "Meo Decor",
     subtitle: "Chuyên Nghiệp",
     description:
@@ -70,14 +70,14 @@ export const FOOTER_DATA = {
       id: "loc-hcm",
       name: "Cơ sở TP. Phủ Lý",
       address: "26/1 ngõ 36 Trần Văn Chuông  - Tp Phủ Lý",
-      phone: "+84 912 345 678",
+      phone: "+84 345 669 006",
       email: "babystorm2310@gmail.com",
     },
     {
       id: "loc-hn",
       name: "Cơ sở Tp. Thái Bình",
       address: "Ngõ 7 Doãn Khuê - Quan Trung - Tp Thái Bình",
-      phone: "+84 987 654 321",
+      phone: "++84 345 669 006",
       email: "babystorm2310@gmail.com",
     },
   ],
