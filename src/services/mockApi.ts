@@ -12,7 +12,7 @@ export const NAV_LINKS: NavLink[] = [
 export const HERO_SLIDES: HeroSlide[] = [
   {
     id: 1,
-    image: "/assets/img/anh nen/anhbia1.jpg",
+    image: "/assets/img/anhnen/anhbia1.jpg",
     title: "Meo Decor",
     subtitle: "Chuyên Nghiệp",
     description:
@@ -114,7 +114,7 @@ export const PRICING_DATA: Package[] = [
     title: "Gói Mini",
     price: "1.000.000",
     currency: "VND",
-    image: "/assets/img/maubetrai/24.jpg",
+    image: "https://photos.fife.usercontent.google.com/pw/AP1GczNEM5711WHXINpzrDnPWUJ3rMKNYYx80cieGh63fV3tSQVeK6_veyoIpw=w593-h1055-s-no-gm?authuser=0",
     tagline: "Thích hợp không gian nhỏ.",
     bullets: ["Biển tên.", "Chibi ảnh bé.", "Sét đồ phụ kiện."],
   },
