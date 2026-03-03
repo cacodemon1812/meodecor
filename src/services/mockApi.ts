@@ -12,7 +12,7 @@ export const NAV_LINKS: NavLink[] = [
 export const HERO_SLIDES: HeroSlide[] = [
   {
     id: 1,
-    image: "/assets/img/anh nen/anh bia 1.jpg",
+    image: "/assets/img/anh nen/anhbia1.jpg",
     title: "Meo Decor",
     subtitle: "Chuyên Nghiệp",
     description:
