@@ -61,24 +61,24 @@ export const FOOTER_DATA = {
   locations: [
     {
       id: "loc-nd",
-      name: "Cơ sở Nam Định",
-      address: "Số 68/75 Điện Biên - Cửa Bắc - Tp Nam Định",
+      name: "Cơ sở TP. Nam Định",
+      address: "158 vĩnh trường - Tp Nam Định",
       phone: "+84 345 669 006",
-      email: "namdinh@meodecor.com",
+      email: "babystorm2310@gmail.com",
     },
     {
       id: "loc-hcm",
-      name: "Cơ sở TP. HCM",
-      address: "Quận 1, TP. Hồ Chí Minh",
+      name: "Cơ sở TP. Phủ Lý",
+      address: "26/1 ngõ 36 Trần Văn Chuông  - Tp Phủ Lý",
       phone: "+84 912 345 678",
-      email: "hcm@meodecor.com",
+      email: "babystorm2310@gmail.com",
     },
     {
       id: "loc-hn",
-      name: "Cơ sở Hà Nội",
-      address: "Hoàn Kiếm, Hà Nội",
+      name: "Cơ sở Tp. Thái Bình",
+      address: "Ngõ 7 Doãn Khuê - Quan Trung - Tp Thái Bình",
       phone: "+84 987 654 321",
-      email: "hanoi@meodecor.com",
+      email: "babystorm2310@gmail.com",
     },
   ],
 };
@@ -112,7 +112,7 @@ export const PRICING_DATA: Package[] = [
   {
     id: "pkg-mini",
     title: "Gói Mini",
-    price: "1.399.000",
+    price: "1.000.000",
     currency: "VND",
     image: "/assets/img/maubetrai/24.jpg",
     tagline: "Thích hợp không gian nhỏ.",
@@ -121,7 +121,7 @@ export const PRICING_DATA: Package[] = [
   {
     id: "pkg-standard",
     title: "Gói Tiêu Chuẩn",
-    price: "2.799.000",
+    price: "1.550.000",
     currency: "VND",
     image: "/assets/img/maubetrai/7.jpg",
     tagline: "Phù hợp gia đình vừa và nhỏ.",
@@ -130,7 +130,7 @@ export const PRICING_DATA: Package[] = [
   {
     id: "pkg-premium",
     title: "Gói Premium",
-    price: "5.499.000",
+    price: "2.200.000",
     currency: "VND",
     image: "/assets/img/SangSinMin/3.jpg",
     tagline: "Sự kiện sang trọng, trọn gói.",
@@ -139,7 +139,7 @@ export const PRICING_DATA: Package[] = [
   {
     id: "pkg-deluxe",
     title: "Gói Deluxe",
-    price: "8.999.000",
+    price: "5.300.000",
     currency: "VND",
     image: "/assets/img/meobaogia/gia1.jpg",
     tagline: "Trải nghiệm VIP, kịch bản sự kiện.",
