@@ -1,39 +1,71 @@
-import React from "react";
-import { fetchHeroSlides, fetchCtaButtons, ANIMATIONS } from "@/data/constants";
+"use client";
 
-export default async function Hero() {
-  const HERO_SLIDES = await fetchHeroSlides();
-  const CTA_BUTTONS = await fetchCtaButtons();
+import React, { useEffect, useState } from "react";
+import Image from "next/image";
+import { HERO_SLIDES, CTA_BUTTONS, ANIMATIONS } from "@/data/constants";
 
-  // render using fetched data
+export default function Hero() {
+  const [currentIndex, setCurrentIndex] = useState(0);
+
+  useEffect(() => {
+    const interval = window.setInterval(() => {
+      setCurrentIndex((prev) => (prev + 1) % HERO_SLIDES.length);
+    }, 5000);
+
+    return () => window.clearInterval(interval);
+  }, []);
+
+  const goNext = () => {
+    setCurrentIndex((prev) => (prev + 1) % HERO_SLIDES.length);
+  };
+
+  const goPrev = () => {
+    setCurrentIndex(
+      (prev) => (prev - 1 + HERO_SLIDES.length) % HERO_SLIDES.length,
+    );
+  };
+
   return (
     <section id="hero">
       <div className="hero-container">
-        <div
-          id="heroCarousel"
-          data-bs-interval="5000"
-          className="carousel slide carousel-fade"
-          data-bs-ride="carousel"
-        >
-          <ol
-            className="carousel-indicators"
-            id="hero-carousel-indicators"
-          ></ol>
+        <div id="heroCarousel" className="carousel slide carousel-fade">
+          <ol className="carousel-indicators" id="hero-carousel-indicators">
+            {HERO_SLIDES.map((slide, index) => (
+              <li
+                key={slide.id}
+                className={index === currentIndex ? "active" : ""}
+                onClick={() => setCurrentIndex(index)}
+              ></li>
+            ))}
+          </ol>
 
           <div className="carousel-inner" role="listbox">
-            {HERO_SLIDES.map((slide: any, index: number) => (
+            {HERO_SLIDES.map((slide, index) => (
               <div
                 key={slide.id}
-                className={`carousel-item ${index === 0 ? "active" : ""}`}
-                style={{ backgroundImage: `url(${slide.image})` }}
+                className={`carousel-item ${index === currentIndex ? "active" : ""}`}
+                style={{
+                  backgroundImage: `url(${slide.image})`,
+                  backgroundSize: "contain",
+                  backgroundPosition: "center center",
+                  backgroundRepeat: "no-repeat",
+                  backgroundColor: "#fdf8f2",
+                }}
               >
                 <div className="carousel-container">
-                  <div className="carousel-content" style={{ width: "100%" }}>
+                  <div className="carousel-content " style={{ width: "100%" }}>
                     {index === 0 && (
-                      <h2 className={ANIMATIONS.fadeInDown}>
-                        <img
+                      <h2
+                        className={
+                          ANIMATIONS.fadeInDown +
+                          " items-center text-center flex flex-col gap-4"
+                        }
+                      >
+                        <Image
                           src="/assets/img/logo/logo.png"
                           alt="Meo Decor Logo"
+                          width={120}
+                          height={120}
                           className="img-fluid logo-meo"
                         />
                       </h2>
@@ -71,7 +103,10 @@ export default async function Hero() {
             className="carousel-control-prev"
             href="#heroCarousel"
             role="button"
-            data-bs-slide="prev"
+            onClick={(e) => {
+              e.preventDefault();
+              goPrev();
+            }}
           >
             <span
               className="carousel-control-prev-icon bi bi-chevron-left"
@@ -83,7 +118,10 @@ export default async function Hero() {
             className="carousel-control-next"
             href="#heroCarousel"
             role="button"
-            data-bs-slide="next"
+            onClick={(e) => {
+              e.preventDefault();
+              goNext();
+            }}
           >
             <span
               className="carousel-control-next-icon bi bi-chevron-right"

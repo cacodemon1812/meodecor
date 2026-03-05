@@ -6,7 +6,7 @@
 /* ── Section ────────────────────────────────────────────────── */
 .gallery-tabs-section {
   padding: 70px 0 80px;
-  background: #fdf8f2;
+  background: #ffb03b33;
   position: relative;
 }
 
@@ -39,8 +39,12 @@
   font-weight: 600;
   cursor: pointer;
   letter-spacing: 0.2px;
-  transition: border-color 200ms ease, color 200ms ease,
-    background 200ms ease, box-shadow 200ms ease, transform 150ms ease;
+  transition:
+    border-color 200ms ease,
+    color 200ms ease,
+    background 200ms ease,
+    box-shadow 200ms ease,
+    transform 150ms ease;
 }
 
 .gallery-tab-btn:hover {
@@ -93,7 +97,9 @@
   background: #ede8e0;
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
   cursor: pointer;
-  transition: box-shadow 280ms ease, transform 280ms ease;
+  transition:
+    box-shadow 280ms ease,
+    transform 280ms ease;
 }
 
 .gallery-item:hover {
@@ -138,7 +144,9 @@
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   opacity: 0;
   transform: scale(0.6);
-  transition: opacity 280ms ease, transform 280ms ease;
+  transition:
+    opacity 280ms ease,
+    transform 280ms ease;
 }
 
 .gallery-item:hover .gallery-img-icon {

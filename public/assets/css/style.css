@@ -419,7 +419,7 @@ h6 {
 
 #hero .carousel-item::before {
   content: "";
-  background-color: rgba(12, 11, 10, 0.5);
+  background-color: rgba(12, 11, 10, 0.15);
   position: absolute;
   top: 0;
   right: 0;
@@ -440,13 +440,28 @@ h6 {
 
 #hero .carousel-content {
   text-align: center;
+  background: linear-gradient(
+    180deg,
+    rgba(18, 18, 18, 0.42) 0%,
+    rgba(18, 18, 18, 0.28) 100%
+  );
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 18px;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.22);
+  padding: 28px 32px;
+  max-width: 980px;
+  margin: 0 auto;
 }
 
 #hero h2 {
   color: #fff;
-  margin-bottom: 30px;
+  margin-bottom: 18px;
   font-size: 48px;
   font-weight: 700;
+  line-height: 1.2;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.35);
 }
 
 #hero h2 span {
@@ -454,10 +469,12 @@ h6 {
 }
 
 #hero p {
-  width: 80%;
+  width: 90%;
   animation-delay: 0.4s;
-  margin: 0 auto 30px auto;
+  margin: 0 auto 22px auto;
   color: #fff;
+  line-height: 1.6;
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.3);
 }
 
 #hero .carousel-inner .carousel-item {
@@ -539,8 +556,18 @@ h6 {
 }
 
 @media (max-width: 768px) {
+  #hero .carousel-content {
+    padding: 18px 14px;
+    border-radius: 14px;
+  }
+
   #hero h2 {
     font-size: 28px;
+  }
+
+  #hero p {
+    width: 96%;
+    margin-bottom: 16px;
   }
 }
 
@@ -1005,7 +1032,7 @@ section {
 # Events
 --------------------------------------------------------------*/
 .events {
-  background: url(../img/anhnen/anhnen1.jpg) center center no-repeat;
+  background: url(../img/anhnen/anhnen1.png) center center no-repeat;
   background-size: cover;
   position: relative;
 }

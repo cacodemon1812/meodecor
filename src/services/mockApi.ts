@@ -12,7 +12,7 @@ export const NAV_LINKS: NavLink[] = [
 export const HERO_SLIDES: HeroSlide[] = [
   {
     id: 1,
-    image: "/assets/img/anhnen/anhbia1.jpg",
+    image: "/assets/img/anhnen/anhbia1.png",
     title: "Meo Decor",
     subtitle: "Chuyên Nghiệp",
     description:
@@ -20,7 +20,7 @@ export const HERO_SLIDES: HeroSlide[] = [
   },
   {
     id: 2,
-    image: "/assets/img/slidemeo/slide-2.jpg",
+    image: "/assets/img/anhnen/slide-2.jpg",
     title: "Meo Decor",
     subtitle: "Nhiệt Tình – Sáng Tạo",
     description:
@@ -28,7 +28,7 @@ export const HERO_SLIDES: HeroSlide[] = [
   },
   {
     id: 3,
-    image: "/assets/img/slidemeo/slide-3.jpg",
+    image: "/assets/img/anhnen/slide-3.jpg",
     title: "Meo Decor",
     subtitle: "Tinh Tế",
     description:
@@ -114,7 +114,7 @@ export const PRICING_DATA: Package[] = [
     title: "Gói Mini",
     price: "1.000.000",
     currency: "VND",
-    image: "https://photos.fife.usercontent.google.com/pw/AP1GczNEM5711WHXINpzrDnPWUJ3rMKNYYx80cieGh63fV3tSQVeK6_veyoIpw=w593-h1055-s-no-gm?authuser=0",
+    image: "/assets/img/maubetrai/1.jpg",
     tagline: "Thích hợp không gian nhỏ.",
     bullets: ["Biển tên.", "Chibi ảnh bé.", "Sét đồ phụ kiện."],
   },
@@ -153,7 +153,7 @@ export const fetchPricing = async () => Promise.resolve(PRICING_DATA);
 export const EVENTS_DATA: EventItem[] = [
   {
     id: "event-1",
-    title: "TRANG TRÍ NGÀY LỄ, KỶ niỆM",
+    title: "TRANG TRÍ NGÀY LỄ, KỶ NIỆM",
     cover: "/assets/img/meobaogia/gia1.jpg",
     images: [
       "/assets/img/meobaogia/gia1.jpg",

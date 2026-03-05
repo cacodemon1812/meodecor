@@ -1,11 +1,12 @@
-@import "tailwindcss/theme";
-
 /* External CDN imports */
 @import url("https://fonts.googleapis.com/css?family=Poppins:300,300i,400,400i,600,600i,700,700i|Satisfy|Comic+Neue:300,300i,400,400i,700,700i");
 @import url("https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400..700&family=Yellowtail&display=swap");
 
 /* Local imports */
 @import "./animations.css";
+
+@import "tailwindcss/preflight";
+@import "tailwindcss/utilities";
 
 :root {
   --background: #ffffff;
@@ -34,6 +35,15 @@ body {
     background 200ms ease,
     box-shadow 200ms ease;
   z-index: 1200;
+}
+
+#header.header-scrolled h1,
+#header.header-scrolled .menu-link {
+  color: #ffffff !important;
+}
+
+#header.header-scrolled .menu-link:hover {
+  color: #ec4899 !important;
 }
 
 /* When header is transparent (on top) keep text/icons appropriate */
@@ -138,8 +148,6 @@ body {
   object-fit: cover;
   display: block;
 }
-
-
 
 /* Accessible focus styles */
 .event-slider .slide-btn:focus,

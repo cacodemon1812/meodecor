@@ -113,7 +113,7 @@
 /* ── Gallery section ─────────────────────────────────────────── */
 .event-gallery-section {
   padding: 60px 0 50px;
-  background: #fdf8f2;
+  background: #ffb03b33;
 }
 
 /* Grid */
@@ -125,8 +125,14 @@
 }
 
 @keyframes galleryFadeIn {
-  from { opacity: 0; transform: translateY(12px); }
-  to   { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* Item */
@@ -140,7 +146,9 @@
   cursor: pointer;
   background: #ede8e0;
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
-  transition: box-shadow 280ms ease, transform 280ms ease;
+  transition:
+    box-shadow 280ms ease,
+    transform 280ms ease;
   display: block;
   width: 100%;
 }
@@ -186,7 +194,9 @@
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   opacity: 0;
   transform: scale(0.65);
-  transition: opacity 280ms ease, transform 280ms ease;
+  transition:
+    opacity 280ms ease,
+    transform 280ms ease;
 }
 
 .event-gallery-item:hover .event-gallery-icon {
@@ -199,8 +209,16 @@
   padding: 70px 0;
   background: #1a1814;
   background-image:
-    radial-gradient(ellipse at 20% 50%, rgba(255, 176, 59, 0.08) 0%, transparent 60%),
-    radial-gradient(ellipse at 80% 50%, rgba(255, 176, 59, 0.05) 0%, transparent 60%);
+    radial-gradient(
+      ellipse at 20% 50%,
+      rgba(255, 176, 59, 0.08) 0%,
+      transparent 60%
+    ),
+    radial-gradient(
+      ellipse at 80% 50%,
+      rgba(255, 176, 59, 0.05) 0%,
+      transparent 60%
+    );
   text-align: center;
 }
 
@@ -230,7 +248,10 @@
   font-weight: 700;
   letter-spacing: 0.4px;
   box-shadow: 0 8px 24px rgba(255, 176, 59, 0.4);
-  transition: background 200ms ease, transform 150ms ease, box-shadow 200ms ease;
+  transition:
+    background 200ms ease,
+    transform 150ms ease,
+    box-shadow 200ms ease;
 }
 
 .event-cta-btn:hover {
@@ -259,7 +280,9 @@
   border-radius: 14px;
   overflow: hidden;
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
-  transition: box-shadow 260ms ease, transform 260ms ease;
+  transition:
+    box-shadow 260ms ease,
+    transform 260ms ease;
   background: #fff;
 }
 
@@ -286,7 +309,11 @@
 .event-related-overlay {
   position: absolute;
   inset: 0;
-  background: linear-gradient(to bottom, transparent 40%, rgba(10, 8, 6, 0.45) 100%);
+  background: linear-gradient(
+    to bottom,
+    transparent 40%,
+    rgba(10, 8, 6, 0.45) 100%
+  );
 }
 
 .event-related-body {
