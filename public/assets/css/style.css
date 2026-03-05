@@ -2028,6 +2028,7 @@ section {
 #hero.hero-static-v3 .hero-static-panel {
   width: min(94vw, 920px);
   text-align: center;
+  position: relative;
 
   background: linear-gradient(
     180deg,
@@ -2043,6 +2044,17 @@ section {
     0 0 30px rgba(255, 176, 59, 0.08);
 
   padding: 30px 34px;
+}
+
+#hero.hero-static-v3 .hero-logo-wrap {
+  margin: 0 0 10px;
+}
+
+#hero.hero-static-v3 .logo-meo {
+  width: clamp(72px, 10vw, 120px) !important;
+  height: auto !important;
+  max-width: 120px;
+  object-fit: contain;
 }
 #hero.hero-static-v3 .hero-static-panel::before {
   content: "";
@@ -2076,6 +2088,7 @@ section {
   min-height: 2.3em;
   margin: 0 auto 14px;
   width: min(95%, 760px);
+  text-align: center;
   color: #ffb03b;
   font-size: clamp(1.08rem, 2.2vw, 1.7rem);
   font-weight: 600;
@@ -2090,6 +2103,7 @@ section {
 #hero.hero-static-v3 .hero-description-glow {
   margin: 0 auto 22px;
   width: min(94%, 760px);
+  text-align: center;
   color: #f8f8f8;
   font-size: clamp(0.98rem, 1.8vw, 1.12rem);
   line-height: 1.65;
@@ -2279,7 +2293,7 @@ section {
 
   #hero.hero-static-v3 {
     min-height: 460px;
-    background-size: min(88vw, 330px);
+    background-size: min(72vw, 260px);
     background-position: center 34%;
   }
 
@@ -2293,6 +2307,15 @@ section {
     border-radius: 14px;
   }
 
+  #hero.hero-static-v3 .hero-logo-wrap {
+    margin-bottom: 8px;
+  }
+
+  #hero.hero-static-v3 .logo-meo {
+    width: 74px !important;
+    max-width: 74px;
+  }
+
   #hero.hero-static-v3 .hero-brand-fixed {
     font-size: clamp(1.55rem, 7vw, 2rem);
     margin-bottom: 8px;
@@ -2301,6 +2324,9 @@ section {
   #hero.hero-static-v3 .hero-subtitle-type {
     font-size: clamp(0.98rem, 4.1vw, 1.2rem);
     min-height: 2.4em;
+    width: 100%;
+    margin-left: auto;
+    margin-right: auto;
   }
 
   #hero.hero-static-v3 .hero-actions-fixed {
@@ -2338,5 +2364,38 @@ section {
     min-height: 4.4em;
     -webkit-line-clamp: 3;
     line-clamp: 3;
+  }
+}
+
+@media (max-width: 480px) {
+  #hero.hero-static-v3 {
+    min-height: 430px;
+    background-size: min(66vw, 220px);
+    background-position: center 32%;
+  }
+
+  #hero.hero-static-v3 .hero-static-overlay {
+    padding: 70px 8px 14px;
+  }
+
+  #hero.hero-static-v3 .hero-static-panel {
+    width: 96vw;
+    padding: 14px 10px;
+  }
+
+  #hero.hero-static-v3 .logo-meo {
+    width: 64px !important;
+    max-width: 64px;
+  }
+
+  #hero.hero-static-v3 .hero-subtitle-type {
+    font-size: 0.98rem;
+    min-height: 2.2em;
+  }
+
+  #hero.hero-static-v3 .hero-description-glow {
+    font-size: 0.92rem;
+    line-height: 1.5;
+    margin-bottom: 12px;
   }
 }
