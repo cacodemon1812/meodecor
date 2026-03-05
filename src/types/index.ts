@@ -16,10 +16,14 @@ export type NavLink = {
 
 export type HeroSlide = {
   id: number;
-  image: string;
+
   title: string;
   subtitle: string;
   description: string;
+};
+export type HeroSlideBg = {
+  id: number;
+  image: string;
 };
 
 export type EventItem = {

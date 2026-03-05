@@ -1,5 +1,11 @@
 // Mock API / data layer — replace with real API later
-import type { NavLink, HeroSlide, Package, EventItem } from "@/types";
+import type {
+  NavLink,
+  HeroSlide,
+  Package,
+  EventItem,
+  HeroSlideBg,
+} from "@/types";
 
 export const NAV_LINKS: NavLink[] = [
   { label: "Trang Chủ", href: "#hero", id: "home" },
@@ -9,10 +15,15 @@ export const NAV_LINKS: NavLink[] = [
   { label: "Liên hệ", href: "#contact", id: "contact" },
 ];
 // Ảnh nền khu vục đầu trang
-export const HERO_SLIDES: HeroSlide[] = [
+export const HERO_SLIDES_BG: HeroSlideBg[] = [
   {
     id: 1,
     image: "/assets/img/anhnen/anhbia1.png",
+  },
+];
+export const HERO_SLIDES: HeroSlide[] = [
+  {
+    id: 1,
     title: "Meo Decor",
     subtitle: "Chuyên Nghiệp",
     description:
@@ -20,7 +31,6 @@ export const HERO_SLIDES: HeroSlide[] = [
   },
   {
     id: 2,
-    image: "/assets/img/anhnen/slide-2.jpg",
     title: "Meo Decor",
     subtitle: "Nhiệt Tình – Sáng Tạo",
     description:
@@ -28,7 +38,6 @@ export const HERO_SLIDES: HeroSlide[] = [
   },
   {
     id: 3,
-    image: "/assets/img/anhnen/slide-3.jpg",
     title: "Meo Decor",
     subtitle: "Tinh Tế",
     description:
