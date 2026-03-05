@@ -46,8 +46,8 @@ export default function Hero() {
                 className={`carousel-item ${index === currentIndex ? "active" : ""}`}
                 style={{
                   backgroundImage: `url(${slide.image})`,
-                  backgroundSize: "contain",
-                  backgroundPosition: "center center",
+                  backgroundSize: "cover",
+                  backgroundPosition: "center",
                   backgroundRepeat: "no-repeat",
                   backgroundColor: "#fdf8f2",
                 }}
@@ -73,13 +73,10 @@ export default function Hero() {
                     <h2 className={ANIMATIONS.fadeInDown}>
                       <span>{slide.title}</span> {slide.subtitle}
                     </h2>
-                    <p
-                      className={ANIMATIONS.fadeInUp}
-                      style={{ fontSize: "larger" }}
-                    >
+                    <p className={`${ANIMATIONS.fadeInUp} hero-description`}>
                       {slide.description}
                     </p>
-                    <div>
+                    <div className="hero-actions">
                       <a
                         href={CTA_BUTTONS.services.href}
                         className={`btn-menu ${ANIMATIONS.fadeInUp} scrollto`}
