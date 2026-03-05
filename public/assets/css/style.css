@@ -1813,6 +1813,187 @@ section {
   text-decoration: none;
 }
 
+/*--------------------------------------------------------------
+# Events Showcase (Nâng cấp)
+--------------------------------------------------------------*/
+.events-showcase {
+  position: relative;
+  padding: 72px 0;
+  background:
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.96) 0%,
+      rgba(255, 248, 238, 0.94) 100%
+    ),
+    url("../img/maubetrai/2.jpg") center center / cover no-repeat;
+}
+
+.events-showcase .section-title p {
+  max-width: 760px;
+  margin: 12px auto 0;
+  color: #675f55;
+  font-size: 1.02rem;
+  line-height: 1.7;
+}
+
+.events-showcase .event-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: #ffffff;
+  border-radius: 24px;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(36, 28, 21, 0.1);
+  border: 1px solid rgba(255, 176, 59, 0.24);
+  transition:
+    transform 0.28s ease,
+    box-shadow 0.28s ease,
+    border-color 0.28s ease;
+}
+
+.events-showcase .event-card::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #ffb03b 0%, #ffd085 100%);
+  z-index: 3;
+}
+
+.events-showcase .event-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 22px 44px rgba(36, 28, 21, 0.18);
+  border-color: rgba(255, 176, 59, 0.55);
+}
+
+.events-showcase .event-card-media {
+  position: relative;
+  overflow: hidden;
+}
+
+.events-showcase .event-card-media img {
+  width: 100%;
+  height: 260px;
+  object-fit: cover;
+  transition: transform 0.8s ease;
+}
+
+.events-showcase .event-card:hover .event-card-media img {
+  transform: scale(1.06);
+}
+
+.events-showcase .event-card-media::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(15, 12, 10, 0) 45%,
+    rgba(15, 12, 10, 0.35) 100%
+  );
+}
+
+.events-showcase .event-chip {
+  position: absolute;
+  left: 14px;
+  top: 14px;
+  z-index: 2;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: #ffb03b;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  box-shadow: 0 8px 18px rgba(255, 176, 59, 0.38);
+}
+
+.events-showcase .event-card-body {
+  padding: 20px 20px 24px;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+}
+
+.events-showcase .event-card-body h4 {
+  margin: 0 0 10px;
+  color: #ffb03b;
+  font-size: 1.2rem;
+  font-weight: 700;
+  line-height: 1.3;
+  min-height: 3.25em;
+}
+
+.events-showcase .event-card-body p {
+  margin: 0;
+  color: #595148;
+  line-height: 1.7;
+  min-height: 5.1em;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.events-showcase .event-card-body .text-center {
+  margin-top: auto !important;
+}
+
+.events-showcase .meobuton {
+  box-shadow: 0 10px 24px rgba(255, 176, 59, 0.34);
+  border: 1px solid rgba(255, 176, 59, 0.35);
+}
+
+.events-showcase .event-reveal {
+  opacity: 0;
+  transform: translateY(18px);
+  animation: eventsReveal 720ms ease forwards;
+}
+
+@keyframes eventsReveal {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 992px) {
+  .events-showcase {
+    padding: 64px 0;
+  }
+
+  .events-showcase .event-card-media img {
+    height: 240px;
+  }
+}
+
+@media (max-width: 768px) {
+  .events-showcase {
+    padding: 56px 0;
+  }
+
+  .events-showcase .section-title p {
+    font-size: 0.95rem;
+    line-height: 1.6;
+  }
+
+  .events-showcase .event-card-body h4 {
+    min-height: 2.8em;
+  }
+
+  .events-showcase .event-card-body p {
+    min-height: 4.8em;
+  }
+
+  .events-showcase .event-card-media img {
+    height: 224px;
+  }
+}
+
 /* Hero static v3: nền giữ nguyên, MeoDecor cố định, subtitle chạy chữ */
 #hero.hero-static-v3 {
   min-height: 480px;
