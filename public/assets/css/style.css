@@ -2148,6 +2148,7 @@ section {
 @media (max-width: 992px) {
   #hero.hero-static-v3 {
     min-height: 520px;
+    background-size: cover;
   }
 
   #hero.hero-static-v3 .hero-static-panel {
@@ -2159,6 +2160,7 @@ section {
 @media (max-width: 768px) {
   #hero.hero-static-v3 {
     min-height: 480px;
+    background-size: cover;
   }
 
   #hero.hero-static-v3 .hero-static-overlay {
@@ -2215,6 +2217,36 @@ section {
 #header .brand-title a {
   color: #fff;
   text-decoration: none;
+}
+
+#header .brand-meta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+#header .brand-address {
+  display: none;
+  margin-top: 2px;
+  font-size: 10px;
+  line-height: 1.2;
+  color: rgba(255, 255, 255, 0.85);
+  max-width: 80vw;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+body.mobile-nav-active {
+  overflow: hidden;
+}
+
+.navbar-mobile {
+  z-index: 9999;
+}
+
+.navbar-mobile .mobile-nav-toggle {
+  color: #fff;
 }
 
 @media (max-width: 992px) {
@@ -2284,6 +2316,15 @@ section {
   #header .brand-title {
     font-size: 1.12rem;
     letter-spacing: 0.5px;
+  }
+
+  #header .brand-meta {
+    gap: 2px;
+  }
+
+  #header .brand-address {
+    display: block;
+    max-width: 80vw;
   }
 
   #header .brand-logo-img {
@@ -2370,8 +2411,9 @@ section {
 @media (max-width: 480px) {
   #hero.hero-static-v3 {
     min-height: 430px;
-    background-size: min(66vw, 220px);
-    background-position: center 32%;
+    /* background-size: min(66vw, 220px);
+    background-position: center 32%; */
+    background-size: cover;
   }
 
   #hero.hero-static-v3 .hero-static-overlay {

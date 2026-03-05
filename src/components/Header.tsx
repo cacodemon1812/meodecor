@@ -1,13 +1,14 @@
 import React from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { fetchNavLinks, fetchCtaButtons } from "@/data/constants";
+import { fetchNavLinks, fetchCtaButtons, fetchTopbar } from "@/data/constants";
 import type { NavLink } from "@/types";
 import HeaderClient from "./HeaderClient";
 
 export default async function Header() {
   const NAV_LINKS = await fetchNavLinks();
   const CTA_BUTTONS = await fetchCtaButtons();
+  const TOPBAR_DATA = await fetchTopbar();
 
   return (
     <header
@@ -26,9 +27,12 @@ export default async function Header() {
               priority
             />
           </Link>
-          <h1 className="brand-title mb-0">
-            <Link href="/">MeoDecor</Link>
-          </h1>
+          <div className="brand-meta ">
+            <h1 className="brand-title mb-0 ">
+              <Link href="/">MeoDecor</Link>
+            </h1>
+            <p className="brand-address mb-0">{TOPBAR_DATA.address}</p>
+          </div>
         </div>
 
         <nav id="navbar" className="navbar order-last order-lg-0">
