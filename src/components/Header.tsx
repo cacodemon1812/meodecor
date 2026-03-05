@@ -1,6 +1,8 @@
 import React from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { fetchNavLinks, fetchCtaButtons } from "@/data/constants";
+import type { NavLink } from "@/types";
 import HeaderClient from "./HeaderClient";
 
 export default async function Header() {
@@ -13,14 +15,25 @@ export default async function Header() {
       className="fixed-top d-flex align-items-center header-transparent"
     >
       <div className="container-fluid container-xl d-flex align-items-center justify-content-between">
-        <img className="logo me-auto" />
-        <h1>
-          <Link href="/">MeoDecor</Link>
-        </h1>
+        <div className="brand-wrap d-flex align-items-center me-auto">
+          <Link href="/" className="brand-logo d-flex align-items-center">
+            <Image
+              src="/assets/img/logo/logo.png"
+              alt="MeoDecor Logo"
+              width={44}
+              height={44}
+              className="brand-logo-img"
+              priority
+            />
+          </Link>
+          <h1 className="brand-title mb-0">
+            <Link href="/">MeoDecor</Link>
+          </h1>
+        </div>
 
         <nav id="navbar" className="navbar order-last order-lg-0">
           <ul>
-            {NAV_LINKS.map((link: any) => (
+            {NAV_LINKS.map((link: NavLink) => (
               <li key={link.id}>
                 <a className="nav-link scrollto" href={link.href}>
                   {link.label}

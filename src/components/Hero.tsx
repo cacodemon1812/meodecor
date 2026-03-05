@@ -32,12 +32,13 @@ export default function Hero() {
       <div className="hero-static-overlay">
         <div className="hero-static-panel">
           <h2 className={" items-center text-center flex flex-col gap-4"}>
-            <img
+            <Image
               src="/assets/img/logo/logo.png"
               alt="Meo Decor Logo"
               width={120}
               height={120}
               className="img-fluid logo-meo"
+              priority
             />
           </h2>
 
