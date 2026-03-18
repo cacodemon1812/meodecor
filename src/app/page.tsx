@@ -7,19 +7,11 @@ import AboutSection from "../components/AboutSection";
 import GalleryTabsClient from "../components/GalleryTabsClient";
 import ContactSection from "../components/ContactSection";
 import Footer from "../components/Footer";
-import { BOY_ChiBi_IMAGES, BOY_IMAGES, GIRL_ChiBi_IMAGES, GIRL_IMAGES, LUXURY_IMAGES } from "../data/gallery";
+import { fetchGalleryTabs } from "../data/constants";
 
-// Bộ Sưu Tập MeoDecor
-const GALLERY_TABS = [
-  { id: "maubetrai", label: "Mẫu bé trai", images: BOY_IMAGES },
-  { id: "MauBeGai", label: "Mẫu bé gái", images: GIRL_IMAGES },
-    { id: "chibibestrai", label: "Chibi Bé Trai", images: BOY_ChiBi_IMAGES },
-  { id: "chibibegai", label: "Chibi Bé Gái", images: GIRL_ChiBi_IMAGES },
-  { id: "mausangsinmin", label: "Mẫu sang sịn mịn", images: LUXURY_IMAGES },
-   
-];
+export default async function Home() {
+  const galleryTabs = await fetchGalleryTabs();
 
-export default function Home() {
   return (
     <>
       <TopBar />
@@ -30,7 +22,7 @@ export default function Home() {
       <EventsSection />
       <AboutSection />
 
-      <GalleryTabsClient tabs={GALLERY_TABS} />
+      <GalleryTabsClient tabs={galleryTabs} />
 
       <ContactSection />
       <Footer />
