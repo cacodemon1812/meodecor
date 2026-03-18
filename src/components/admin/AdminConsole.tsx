@@ -1,7 +1,14 @@
 "use client";
 
 import Image from "next/image";
-import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
+import {
+  FormEvent,
+  useCallback,
+  useDeferredValue,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import styles from "./AdminConsole.module.css";
 
 type SectionKey =
@@ -102,6 +109,7 @@ type MediaStats = {
   totalSizeReadable: string;
 };
 type PreviewMode = "desktop" | "tablet" | "mobile";
+type MediaMenuKey = "upload" | "library";
 
 type SectionMeta = {
   label: string;
@@ -117,6 +125,25 @@ type SectionMeta = {
 };
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5001";
+const UI_STATE_KEY = "meodecor-admin-ui-state-v1";
+const MEDIA_BATCH_SIZE = 120;
+const MEDIA_PICKER_BATCH_SIZE = 100;
+
+function filterMediaByKeyword(
+  items: MediaItem[],
+  keyword: string,
+): MediaItem[] {
+  const normalizedKeyword = keyword.trim().toLowerCase();
+  if (!normalizedKeyword) {
+    return items;
+  }
+
+  return items.filter(
+    (item) =>
+      item.originalName.toLowerCase().includes(normalizedKeyword) ||
+      item.storageKey.toLowerCase().includes(normalizedKeyword),
+  );
+}
 
 const SECTION_META: Record<SectionKey, SectionMeta> = {
   dashboard: {
@@ -220,6 +247,7 @@ export default function AdminConsole() {
   const [section, setSection] = useState<SectionKey>("dashboard");
   const [previewPath, setPreviewPath] = useState("/");
   const [previewMode, setPreviewMode] = useState<PreviewMode>("desktop");
+  const [mediaMenu, setMediaMenu] = useState<MediaMenuKey>("upload");
   const [previewNonce, setPreviewNonce] = useState(0);
   const [username, setUsername] = useState("admin");
   const [password, setPassword] = useState("Admin@123");
@@ -250,14 +278,46 @@ export default function AdminConsole() {
   const [mediaFolderFilter, setMediaFolderFilter] = useState("");
   const [mediaTagFilter, setMediaTagFilter] = useState("");
   const [mediaKeyword, setMediaKeyword] = useState("");
+  const [mediaVisibleCount, setMediaVisibleCount] = useState(MEDIA_BATCH_SIZE);
   const [mediaModule, setMediaModule] = useState("general");
   const [uploadFiles, setUploadFiles] = useState<File[]>([]);
   const [uploadFolderId, setUploadFolderId] = useState("");
   const [uploadTagIds, setUploadTagIds] = useState<string[]>([]);
+  const [uploading, setUploading] = useState(false);
   const [folderName, setFolderName] = useState("");
   const [folderSlug, setFolderSlug] = useState("");
+  const [creatingFolder, setCreatingFolder] = useState(false);
+  const [showFolderModal, setShowFolderModal] = useState(false);
   const [tagName, setTagName] = useState("");
   const [tagSlug, setTagSlug] = useState("");
+  const [creatingTag, setCreatingTag] = useState(false);
+  const [showTagModal, setShowTagModal] = useState(false);
+
+  const [eventCoverKeyword, setEventCoverKeyword] = useState("");
+  const [eventCoverVisibleCount, setEventCoverVisibleCount] = useState(
+    MEDIA_PICKER_BATCH_SIZE,
+  );
+  const [eventDetailKeyword, setEventDetailKeyword] = useState("");
+  const [eventDetailVisibleCount, setEventDetailVisibleCount] = useState(
+    MEDIA_PICKER_BATCH_SIZE,
+  );
+  const [pricingMediaKeyword, setPricingMediaKeyword] = useState("");
+  const [pricingMediaVisibleCount, setPricingMediaVisibleCount] = useState(
+    MEDIA_PICKER_BATCH_SIZE,
+  );
+  const [galleryMediaKeyword, setGalleryMediaKeyword] = useState("");
+  const [galleryMediaVisibleCount, setGalleryMediaVisibleCount] = useState(
+    MEDIA_PICKER_BATCH_SIZE,
+  );
+  const [galleryBulkCategoryId, setGalleryBulkCategoryId] = useState("");
+  const [galleryBulkKeyword, setGalleryBulkKeyword] = useState("");
+  const [galleryBulkVisibleCount, setGalleryBulkVisibleCount] = useState(
+    MEDIA_PICKER_BATCH_SIZE,
+  );
+  const [galleryBulkMediaIds, setGalleryBulkMediaIds] = useState<string[]>([]);
+  const [galleryBulkStartOrder, setGalleryBulkStartOrder] = useState(1);
+  const [galleryBulkIsActive, setGalleryBulkIsActive] = useState(true);
+  const [galleryBulkCreating, setGalleryBulkCreating] = useState(false);
 
   const [eventForm, setEventForm] = useState(EMPTY_EVENT);
   const [pricingForm, setPricingForm] = useState(EMPTY_PRICING);
@@ -282,6 +342,31 @@ export default function AdminConsole() {
     () => Object.fromEntries(galleryCategories.map((item) => [item.id, item])),
     [galleryCategories],
   );
+  const galleryItemCountByCategory = useMemo(() => {
+    const counts: Record<string, number> = {};
+    for (const item of galleryItems) {
+      counts[item.categoryId] = (counts[item.categoryId] || 0) + 1;
+    }
+    return counts;
+  }, [galleryItems]);
+  const nextGalleryOrderByCategory = useMemo(() => {
+    const nextOrder: Record<string, number> = {};
+    for (const item of galleryItems) {
+      const currentMax = nextOrder[item.categoryId] || 0;
+      nextOrder[item.categoryId] = Math.max(currentMax, item.displayOrder);
+    }
+    for (const category of galleryCategories) {
+      nextOrder[category.id] = (nextOrder[category.id] || 0) + 1;
+    }
+    return nextOrder;
+  }, [galleryCategories, galleryItems]);
+
+  const deferredMediaKeyword = useDeferredValue(mediaKeyword);
+  const deferredEventCoverKeyword = useDeferredValue(eventCoverKeyword);
+  const deferredEventDetailKeyword = useDeferredValue(eventDetailKeyword);
+  const deferredPricingMediaKeyword = useDeferredValue(pricingMediaKeyword);
+  const deferredGalleryMediaKeyword = useDeferredValue(galleryMediaKeyword);
+  const deferredGalleryBulkKeyword = useDeferredValue(galleryBulkKeyword);
 
   useEffect(() => {
     const storedToken =
@@ -289,7 +374,65 @@ export default function AdminConsole() {
     if (storedToken) {
       setToken(storedToken);
     }
+
+    const storedUiState = window.localStorage.getItem(UI_STATE_KEY);
+    if (!storedUiState) {
+      return;
+    }
+
+    try {
+      const parsed = JSON.parse(storedUiState) as Partial<{
+        section: SectionKey;
+        previewMode: PreviewMode;
+        mediaMenu: MediaMenuKey;
+        mediaFolderFilter: string;
+        mediaTagFilter: string;
+        mediaKeyword: string;
+      }>;
+
+      if (parsed.section && parsed.section in SECTION_META) {
+        setSection(parsed.section);
+      }
+      if (parsed.previewMode) {
+        setPreviewMode(parsed.previewMode);
+      }
+      if (parsed.mediaMenu === "upload" || parsed.mediaMenu === "library") {
+        setMediaMenu(parsed.mediaMenu);
+      }
+      if (typeof parsed.mediaFolderFilter === "string") {
+        setMediaFolderFilter(parsed.mediaFolderFilter);
+      }
+      if (typeof parsed.mediaTagFilter === "string") {
+        setMediaTagFilter(parsed.mediaTagFilter);
+      }
+      if (typeof parsed.mediaKeyword === "string") {
+        setMediaKeyword(parsed.mediaKeyword);
+      }
+    } catch {
+      window.localStorage.removeItem(UI_STATE_KEY);
+    }
   }, []);
+
+  useEffect(() => {
+    window.localStorage.setItem(
+      UI_STATE_KEY,
+      JSON.stringify({
+        section,
+        previewMode,
+        mediaMenu,
+        mediaFolderFilter,
+        mediaTagFilter,
+        mediaKeyword,
+      }),
+    );
+  }, [
+    section,
+    previewMode,
+    mediaMenu,
+    mediaFolderFilter,
+    mediaTagFilter,
+    mediaKeyword,
+  ]);
 
   useEffect(() => {
     if (selectedSettingKey || siteSettings.length === 0) {
@@ -300,6 +443,8 @@ export default function AdminConsole() {
   }, [selectedSettingKey, siteSettings]);
 
   const filteredMedia = useMemo(() => {
+    const normalizedKeyword = deferredMediaKeyword.trim().toLowerCase();
+
     return mediaItems.filter((item) => {
       if (mediaFolderFilter && item.folderId !== mediaFolderFilter) {
         return false;
@@ -307,16 +452,128 @@ export default function AdminConsole() {
       if (mediaTagFilter && !item.tagIds.includes(mediaTagFilter)) {
         return false;
       }
-      if (mediaKeyword) {
-        const keyword = mediaKeyword.toLowerCase();
+      if (normalizedKeyword) {
         return (
-          item.originalName.toLowerCase().includes(keyword) ||
-          item.storageKey.toLowerCase().includes(keyword)
+          item.originalName.toLowerCase().includes(normalizedKeyword) ||
+          item.storageKey.toLowerCase().includes(normalizedKeyword)
         );
       }
       return true;
     });
-  }, [mediaItems, mediaFolderFilter, mediaTagFilter, mediaKeyword]);
+  }, [mediaItems, mediaFolderFilter, mediaTagFilter, deferredMediaKeyword]);
+
+  const visibleMedia = useMemo(
+    () => filteredMedia.slice(0, mediaVisibleCount),
+    [filteredMedia, mediaVisibleCount],
+  );
+
+  const hasMoreMedia = visibleMedia.length < filteredMedia.length;
+
+  const eventCoverCandidates = useMemo(
+    () => filterMediaByKeyword(mediaItems, deferredEventCoverKeyword),
+    [mediaItems, deferredEventCoverKeyword],
+  );
+  const visibleEventCoverCandidates = useMemo(
+    () => eventCoverCandidates.slice(0, eventCoverVisibleCount),
+    [eventCoverCandidates, eventCoverVisibleCount],
+  );
+  const hasMoreEventCoverCandidates =
+    visibleEventCoverCandidates.length < eventCoverCandidates.length;
+
+  const eventDetailCandidates = useMemo(
+    () => filterMediaByKeyword(mediaItems, deferredEventDetailKeyword),
+    [mediaItems, deferredEventDetailKeyword],
+  );
+  const visibleEventDetailCandidates = useMemo(
+    () => eventDetailCandidates.slice(0, eventDetailVisibleCount),
+    [eventDetailCandidates, eventDetailVisibleCount],
+  );
+  const hasMoreEventDetailCandidates =
+    visibleEventDetailCandidates.length < eventDetailCandidates.length;
+
+  const pricingMediaCandidates = useMemo(
+    () => filterMediaByKeyword(mediaItems, deferredPricingMediaKeyword),
+    [mediaItems, deferredPricingMediaKeyword],
+  );
+  const visiblePricingMediaCandidates = useMemo(
+    () => pricingMediaCandidates.slice(0, pricingMediaVisibleCount),
+    [pricingMediaCandidates, pricingMediaVisibleCount],
+  );
+  const hasMorePricingMediaCandidates =
+    visiblePricingMediaCandidates.length < pricingMediaCandidates.length;
+
+  const galleryMediaCandidates = useMemo(
+    () => filterMediaByKeyword(mediaItems, deferredGalleryMediaKeyword),
+    [mediaItems, deferredGalleryMediaKeyword],
+  );
+  const visibleGalleryMediaCandidates = useMemo(
+    () => galleryMediaCandidates.slice(0, galleryMediaVisibleCount),
+    [galleryMediaCandidates, galleryMediaVisibleCount],
+  );
+  const hasMoreGalleryMediaCandidates =
+    visibleGalleryMediaCandidates.length < galleryMediaCandidates.length;
+
+  const galleryBulkCandidates = useMemo(
+    () => filterMediaByKeyword(mediaItems, deferredGalleryBulkKeyword),
+    [mediaItems, deferredGalleryBulkKeyword],
+  );
+  const visibleGalleryBulkCandidates = useMemo(
+    () => galleryBulkCandidates.slice(0, galleryBulkVisibleCount),
+    [galleryBulkCandidates, galleryBulkVisibleCount],
+  );
+  const hasMoreGalleryBulkCandidates =
+    visibleGalleryBulkCandidates.length < galleryBulkCandidates.length;
+  const galleryBulkExistingMediaSet = useMemo(
+    () =>
+      new Set(
+        galleryItems
+          .filter((item) => item.categoryId === galleryBulkCategoryId)
+          .map((item) => item.mediaFileId),
+      ),
+    [galleryBulkCategoryId, galleryItems],
+  );
+
+  const selectedEventCoverMedia = eventForm.coverMediaId
+    ? mediaMap[eventForm.coverMediaId]
+    : undefined;
+  const selectedPricingMedia = pricingForm.imageMediaId
+    ? mediaMap[pricingForm.imageMediaId]
+    : undefined;
+
+  useEffect(() => {
+    setMediaVisibleCount(MEDIA_BATCH_SIZE);
+  }, [
+    mediaFolderFilter,
+    mediaTagFilter,
+    deferredMediaKeyword,
+    mediaItems.length,
+  ]);
+
+  useEffect(() => {
+    setEventCoverVisibleCount(MEDIA_PICKER_BATCH_SIZE);
+  }, [deferredEventCoverKeyword, mediaItems.length]);
+
+  useEffect(() => {
+    setEventDetailVisibleCount(MEDIA_PICKER_BATCH_SIZE);
+  }, [deferredEventDetailKeyword, mediaItems.length]);
+
+  useEffect(() => {
+    setPricingMediaVisibleCount(MEDIA_PICKER_BATCH_SIZE);
+  }, [deferredPricingMediaKeyword, mediaItems.length]);
+
+  useEffect(() => {
+    setGalleryMediaVisibleCount(MEDIA_PICKER_BATCH_SIZE);
+  }, [deferredGalleryMediaKeyword, mediaItems.length]);
+
+  useEffect(() => {
+    setGalleryBulkVisibleCount(MEDIA_PICKER_BATCH_SIZE);
+  }, [deferredGalleryBulkKeyword, mediaItems.length]);
+
+  const resetMediaFilters = useCallback(() => {
+    setMediaFolderFilter("");
+    setMediaTagFilter("");
+    setMediaKeyword("");
+  }, []);
 
   const api = useCallback(
     async function api<T>(
@@ -479,12 +736,19 @@ export default function AdminConsole() {
     showPreview(nextPreviewPath ?? SECTION_META[nextSection].previewPath);
   }
 
+  function applyGalleryCategory(categoryId: string) {
+    setGalleryItemForm((prev) => ({ ...prev, categoryId }));
+    setGalleryBulkCategoryId(categoryId);
+    setGalleryBulkStartOrder(nextGalleryOrderByCategory[categoryId] || 1);
+  }
+
   async function uploadMedia(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (uploadFiles.length === 0) {
       setError("Chọn file trước khi upload.");
       return;
     }
+    setUploading(true);
     const formData = new FormData();
     for (const file of uploadFiles) {
       formData.append("files", file);
@@ -512,11 +776,14 @@ export default function AdminConsole() {
       showPreview(SECTION_META.media.previewPath);
     } catch (uploadError) {
       setError(getErrorMessage(uploadError));
+    } finally {
+      setUploading(false);
     }
   }
 
   async function createFolder(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    setCreatingFolder(true);
     try {
       await api("/api/admin/media/folders", {
         method: "POST",
@@ -528,15 +795,19 @@ export default function AdminConsole() {
       });
       setFolderName("");
       setFolderSlug("");
+      setShowFolderModal(false);
       setMessage("Tạo folder thành công.");
       await loadAdminData();
     } catch (folderError) {
       setError(getErrorMessage(folderError));
+    } finally {
+      setCreatingFolder(false);
     }
   }
 
   async function createTag(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    setCreatingTag(true);
     try {
       await api("/api/admin/media/tags", {
         method: "POST",
@@ -544,10 +815,13 @@ export default function AdminConsole() {
       });
       setTagName("");
       setTagSlug("");
+      setShowTagModal(false);
       setMessage("Tạo tag thành công.");
       await loadAdminData();
     } catch (tagError) {
       setError(getErrorMessage(tagError));
+    } finally {
+      setCreatingTag(false);
     }
   }
 
@@ -719,6 +993,69 @@ export default function AdminConsole() {
     }
   }
 
+  async function createGalleryItemsBulk(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!galleryBulkCategoryId) {
+      setError("Chọn category trước khi thêm nhanh gallery item.");
+      return;
+    }
+    if (galleryBulkMediaIds.length === 0) {
+      setError("Chọn ít nhất một ảnh để thêm vào category.");
+      return;
+    }
+
+    setGalleryBulkCreating(true);
+    try {
+      const deduplicated = Array.from(new Set(galleryBulkMediaIds));
+      const existingInCategory = new Set(
+        galleryItems
+          .filter((item) => item.categoryId === galleryBulkCategoryId)
+          .map((item) => item.mediaFileId),
+      );
+      const mediaIdsToCreate = deduplicated.filter(
+        (mediaId) => !existingInCategory.has(mediaId),
+      );
+
+      if (mediaIdsToCreate.length === 0) {
+        setMessage("Các ảnh đã chọn đã tồn tại trong category này.");
+        return;
+      }
+
+      let nextOrder = Number(galleryBulkStartOrder) || 1;
+      for (const mediaId of mediaIdsToCreate) {
+        const media = mediaMap[mediaId];
+        await api("/api/admin/gallery/items", {
+          method: "POST",
+          body: JSON.stringify({
+            categoryId: galleryBulkCategoryId,
+            mediaFileId: mediaId,
+            title: media?.originalName || null,
+            altText: media?.originalName || null,
+            displayOrder: nextOrder,
+            isActive: galleryBulkIsActive,
+          }),
+        });
+        nextOrder += 1;
+      }
+
+      const skippedCount = deduplicated.length - mediaIdsToCreate.length;
+      setMessage(
+        skippedCount > 0
+          ? `Đã thêm ${mediaIdsToCreate.length} ảnh vào category. Bỏ qua ${skippedCount} ảnh đã có.`
+          : `Đã thêm ${mediaIdsToCreate.length} ảnh vào category.`,
+      );
+      setGalleryBulkMediaIds([]);
+      setGalleryBulkKeyword("");
+      setGalleryBulkStartOrder(nextOrder);
+      await loadAdminData();
+      showPreview("/#gallery");
+    } catch (saveError) {
+      setError(getErrorMessage(saveError));
+    } finally {
+      setGalleryBulkCreating(false);
+    }
+  }
+
   async function deleteGalleryItem(id: string) {
     if (!window.confirm("Xóa item gallery này?")) return;
     try {
@@ -766,6 +1103,15 @@ export default function AdminConsole() {
   const selectedGalleryMedia = galleryItemForm.mediaFileId
     ? mediaMap[galleryItemForm.mediaFileId]
     : undefined;
+  const selectedGalleryBulkMedia = galleryBulkMediaIds
+    .map((id) => mediaMap[id])
+    .filter((item): item is MediaItem => Boolean(item))
+    .slice(0, 3);
+  const visibleGalleryItems = galleryItemForm.categoryId
+    ? galleryItems.filter(
+        (item) => item.categoryId === galleryItemForm.categoryId,
+      )
+    : galleryItems;
   const previewClass =
     previewMode === "desktop"
       ? styles.previewDesktop
@@ -838,242 +1184,9 @@ export default function AdminConsole() {
   return (
     <div className={styles.page}>
       <div className={styles.shell}>
-        <section className={styles.hero}>
-          <div className={styles.heroCard}>
-            <div className={styles.eyebrow}>Live Admin Workspace</div>
-            <h1 className={styles.title}>
-              Điều khiển nội dung và nhìn thấy kết quả ngay trên trang chính
-            </h1>
-            <p className={styles.subtitle}>
-              Admin mới ưu tiên workflow thực tế: chọn module, chỉnh dữ liệu,
-              preview section tương ứng, rồi quay lại tinh chỉnh tiếp mà không
-              phải đổi tab liên tục.
-            </p>
-            <div className={styles.heroActions}>
-              <button
-                className={styles.button}
-                type="button"
-                onClick={() => void loadAdminData()}
-              >
-                Làm mới toàn bộ dữ liệu
-              </button>
-              <button
-                className={styles.buttonGhost}
-                type="button"
-                onClick={() =>
-                  window.open(previewPath, "_blank", "noopener,noreferrer")
-                }
-              >
-                Mở preview tab mới
-              </button>
-              <button
-                className={styles.buttonDanger}
-                type="button"
-                onClick={logout}
-              >
-                Đăng xuất
-              </button>
-            </div>
-            <div className={styles.heroStats}>
-              <div className={styles.heroStat}>
-                <span className={styles.heroStatLabel}>Section hiện tại</span>
-                <strong className={styles.heroStatValue}>
-                  {currentMeta.label}
-                </strong>
-              </div>
-              <div className={styles.heroStat}>
-                <span className={styles.heroStatLabel}>Preview đang xem</span>
-                <strong className={styles.heroStatValue}>{previewPath}</strong>
-              </div>
-              <div className={styles.heroStat}>
-                <span className={styles.heroStatLabel}>Media lọc được</span>
-                <strong className={styles.heroStatValue}>
-                  {filteredMedia.length}
-                </strong>
-              </div>
-            </div>
-          </div>
-          <div className={styles.statusCard}>
-            <div>
-              <div className={styles.panelTitle}>Trạng thái điều khiển</div>
-              <div className={styles.panelText}>
-                Những con số cần nhìn đầu tiên khi thao tác site.
-              </div>
-            </div>
-            <div className={styles.statusList}>
-              <div className={styles.statusItem}>
-                <span className={styles.statusLabel}>Tổng file</span>
-                <strong className={styles.statusValue}>
-                  {stats?.totalFiles ?? 0}
-                </strong>
-              </div>
-              <div className={styles.statusItem}>
-                <span className={styles.statusLabel}>Tổng dung lượng</span>
-                <strong className={styles.statusValue}>
-                  {stats?.totalSizeReadable ?? "0 B"}
-                </strong>
-              </div>
-              <div className={styles.statusItem}>
-                <span className={styles.statusLabel}>Sự kiện</span>
-                <strong className={styles.statusValue}>{events.length}</strong>
-              </div>
-              <div className={styles.statusItem}>
-                <span className={styles.statusLabel}>Gói giá</span>
-                <strong className={styles.statusValue}>{pricing.length}</strong>
-              </div>
-              <div className={styles.statusItem}>
-                <span className={styles.statusLabel}>Gallery items</span>
-                <strong className={styles.statusValue}>
-                  {galleryItems.length}
-                </strong>
-              </div>
-              <div className={styles.statusItem}>
-                <span className={styles.statusLabel}>Settings động</span>
-                <strong className={styles.statusValue}>
-                  {siteSettings.length}
-                </strong>
-              </div>
-            </div>
-          </div>
-        </section>
-
         {renderMessage()}
 
         <div className={styles.layout}>
-          <aside className={styles.sidebar}>
-            <section className={styles.sidebarCard}>
-              <div className={styles.sidebarTitle}>Điều hướng module</div>
-              <p className={styles.sidebarSubtle}>
-                Chọn module cần sửa và nhảy ngay tới section tương ứng trên
-                site.
-              </p>
-              <div className={styles.navList}>
-                {(
-                  Object.entries(SECTION_META) as [SectionKey, SectionMeta][]
-                ).map(([key, meta]) => (
-                  <button
-                    key={key}
-                    className={`${styles.navButton} ${section === key ? styles.navButtonActive : ""}`}
-                    type="button"
-                    onClick={() => navigateSection(key, meta.previewPath)}
-                  >
-                    <div>
-                      <div className={styles.navLabel}>{meta.label}</div>
-                      <div className={styles.navCaption}>{meta.caption}</div>
-                    </div>
-                    {key !== "dashboard" && (
-                      <span className={styles.navCount}>
-                        {meta.count({
-                          events,
-                          pricing,
-                          galleryItems,
-                          siteSettings,
-                          mediaItems,
-                        })}
-                      </span>
-                    )}
-                  </button>
-                ))}
-              </div>
-            </section>
-
-            <section className={styles.sidebarCard}>
-              <div className={styles.sidebarTitle}>Bộ lọc media dùng chung</div>
-              <p className={styles.sidebarSubtle}>
-                Một bộ lọc để chọn tài nguyên nhất quán cho tất cả các form.
-              </p>
-              <div className={styles.filterBlock}>
-                <select
-                  className={styles.select}
-                  value={mediaFolderFilter}
-                  onChange={(e) => setMediaFolderFilter(e.target.value)}
-                >
-                  <option value="">Tất cả folder</option>
-                  {folders.map((folder) => (
-                    <option key={folder.id} value={folder.id}>
-                      {folder.name}
-                    </option>
-                  ))}
-                </select>
-                <select
-                  className={styles.select}
-                  value={mediaTagFilter}
-                  onChange={(e) => setMediaTagFilter(e.target.value)}
-                >
-                  <option value="">Tất cả tag</option>
-                  {tags.map((tag) => (
-                    <option key={tag.id} value={tag.id}>
-                      {tag.name}
-                    </option>
-                  ))}
-                </select>
-                <input
-                  className={styles.input}
-                  value={mediaKeyword}
-                  onChange={(e) => setMediaKeyword(e.target.value)}
-                  placeholder="Tìm tên file hoặc storage key"
-                />
-              </div>
-              <div className={styles.filterSummary}>
-                {mediaFolderFilter && (
-                  <span className={styles.metaPill}>
-                    Folder:{" "}
-                    {folderMap[mediaFolderFilter]?.name ?? mediaFolderFilter}
-                  </span>
-                )}
-                {mediaTagFilter && (
-                  <span className={styles.metaPill}>
-                    Tag: {tagMap[mediaTagFilter]?.name ?? mediaTagFilter}
-                  </span>
-                )}
-                <span className={styles.metaPill}>
-                  {filteredMedia.length} file khớp
-                </span>
-              </div>
-            </section>
-
-            <section className={styles.sidebarCard}>
-              <div className={styles.sidebarTitle}>Quick preview links</div>
-              <div className={styles.linkList}>
-                <button
-                  className={`${styles.linkButton} ${styles.previewLink}`}
-                  type="button"
-                  onClick={() => showPreview("/")}
-                >
-                  Trang chủ <span>↗</span>
-                </button>
-                <button
-                  className={`${styles.linkButton} ${styles.previewLink}`}
-                  type="button"
-                  onClick={() => showPreview("/#events")}
-                >
-                  Khối sự kiện <span>↗</span>
-                </button>
-                <button
-                  className={`${styles.linkButton} ${styles.previewLink}`}
-                  type="button"
-                  onClick={() => showPreview("/#BaoGiaDichVu")}
-                >
-                  Khối bảng giá <span>↗</span>
-                </button>
-                <button
-                  className={`${styles.linkButton} ${styles.previewLink}`}
-                  type="button"
-                  onClick={() => showPreview("/#gallery")}
-                >
-                  Khối gallery <span>↗</span>
-                </button>
-                <button
-                  className={`${styles.linkButton} ${styles.previewLink}`}
-                  type="button"
-                  onClick={() => showPreview("/#contact")}
-                >
-                  Khối liên hệ <span>↗</span>
-                </button>
-              </div>
-            </section>
-          </aside>
-
           <main className={styles.main}>
             <section className={styles.sectionBar}>
               <div>
@@ -1083,6 +1196,13 @@ export default function AdminConsole() {
                 </p>
               </div>
               <div className={styles.quickLinks}>
+                <button
+                  className={styles.button}
+                  type="button"
+                  onClick={() => void loadAdminData()}
+                >
+                  Làm mới dữ liệu
+                </button>
                 <button
                   className={styles.buttonSecondary}
                   type="button"
@@ -1103,7 +1223,29 @@ export default function AdminConsole() {
                 >
                   Mở tab mới
                 </button>
+                <button
+                  className={styles.buttonDanger}
+                  type="button"
+                  onClick={logout}
+                >
+                  Đăng xuất
+                </button>
               </div>
+            </section>
+
+            <section className={styles.moduleMenuBar}>
+              {(
+                Object.entries(SECTION_META) as [SectionKey, SectionMeta][]
+              ).map(([key, meta]) => (
+                <button
+                  key={key}
+                  type="button"
+                  className={`${styles.moduleMenuButton} ${section === key ? styles.moduleMenuButtonActive : ""}`}
+                  onClick={() => navigateSection(key, meta.previewPath)}
+                >
+                  {meta.label}
+                </button>
+              ))}
             </section>
 
             {section === "dashboard" && (
@@ -1295,196 +1437,163 @@ export default function AdminConsole() {
 
             {section === "media" && (
               <>
-                <section className={styles.duoGrid}>
-                  <section className={styles.panel}>
-                    <div className={styles.panelHeader}>
-                      <div>
-                        <div className={styles.panelTitle}>Upload file mới</div>
-                        <div className={styles.panelText}>
-                          Chọn module, folder, tag rồi đưa file vào media
-                          library.
-                        </div>
-                      </div>
-                    </div>
-                    <form className={styles.formGrid} onSubmit={uploadMedia}>
-                      <input
-                        className={`${styles.file} ${styles.full}`}
-                        type="file"
-                        multiple
-                        onChange={(e) =>
-                          setUploadFiles(Array.from(e.target.files ?? []))
-                        }
-                      />
-                      <div className={`${styles.helper} ${styles.full}`}>
-                        {uploadFiles.length > 0
-                          ? `Đã chọn ${uploadFiles.length} file để upload.`
-                          : "Có thể chọn 1 hoặc nhiều file trong một lần upload."}
-                      </div>
-                      <input
-                        className={styles.input}
-                        value={mediaModule}
-                        onChange={(e) => setMediaModule(e.target.value)}
-                        placeholder="Module, ví dụ: gallery"
-                      />
-                      <select
-                        className={styles.select}
-                        value={uploadFolderId}
-                        onChange={(e) => setUploadFolderId(e.target.value)}
-                      >
-                        <option value="">Chọn folder</option>
-                        {folders.map((folder) => (
-                          <option key={folder.id} value={folder.id}>
-                            {folder.name}
-                          </option>
-                        ))}
-                      </select>
-                      <select
-                        className={`${styles.select} ${styles.full}`}
-                        multiple
-                        value={uploadTagIds}
-                        onChange={(e) =>
-                          setUploadTagIds(
-                            Array.from(e.target.selectedOptions).map(
-                              (x) => x.value,
-                            ),
-                          )
-                        }
-                      >
-                        {tags.map((tag) => (
-                          <option key={tag.id} value={tag.id}>
-                            {tag.name}
-                          </option>
-                        ))}
-                      </select>
-                      <button
-                        className={`${styles.button} ${styles.full}`}
-                        type="submit"
-                      >
-                        Upload và thêm vào thư viện
-                      </button>
-                    </form>
-                  </section>
-                  <section className={styles.stack}>
-                    <section className={styles.panel}>
-                      <div className={styles.panelHeader}>
-                        <div>
-                          <div className={styles.panelTitle}>Tạo folder</div>
-                          <div className={styles.panelText}>
-                            Phân loại file để các module chọn đúng tài nguyên.
-                          </div>
-                        </div>
-                      </div>
-                      <form className={styles.formGrid} onSubmit={createFolder}>
-                        <input
-                          className={styles.input}
-                          value={folderName}
-                          onChange={(e) => setFolderName(e.target.value)}
-                          placeholder="Tên folder"
-                        />
-                        <input
-                          className={styles.input}
-                          value={folderSlug}
-                          onChange={(e) => setFolderSlug(e.target.value)}
-                          placeholder="Slug folder"
-                        />
-                        <button
-                          className={`${styles.buttonSecondary} ${styles.full}`}
-                          type="submit"
-                        >
-                          Lưu folder
-                        </button>
-                      </form>
-                    </section>
-                    <section className={styles.panel}>
-                      <div className={styles.panelHeader}>
-                        <div>
-                          <div className={styles.panelTitle}>Tạo tag</div>
-                          <div className={styles.panelText}>
-                            Dùng tag để chọn file theo chiến dịch, concept, nhóm
-                            nội dung.
-                          </div>
-                        </div>
-                      </div>
-                      <form className={styles.formGrid} onSubmit={createTag}>
-                        <input
-                          className={styles.input}
-                          value={tagName}
-                          onChange={(e) => setTagName(e.target.value)}
-                          placeholder="Tên tag"
-                        />
-                        <input
-                          className={styles.input}
-                          value={tagSlug}
-                          onChange={(e) => setTagSlug(e.target.value)}
-                          placeholder="Slug tag"
-                        />
-                        <button
-                          className={`${styles.buttonSecondary} ${styles.full}`}
-                          type="submit"
-                        >
-                          Lưu tag
-                        </button>
-                      </form>
-                    </section>
-                  </section>
+                <section className={styles.subMenuBar}>
+                  <button
+                    type="button"
+                    className={`${styles.subMenuButton} ${mediaMenu === "upload" ? styles.subMenuButtonActive : ""}`}
+                    onClick={() => setMediaMenu("upload")}
+                  >
+                    Upload & phân loại
+                  </button>
+                  <button
+                    type="button"
+                    className={`${styles.subMenuButton} ${mediaMenu === "library" ? styles.subMenuButtonActive : ""}`}
+                    onClick={() => setMediaMenu("library")}
+                  >
+                    Media library
+                  </button>
                 </section>
 
-                <section className={styles.panel}>
-                  <div className={styles.panelHeader}>
-                    <div>
-                      <div className={styles.panelTitle}>Media library</div>
-                      <div className={styles.panelText}>
-                        Các file đang sẵn sàng cho events, pricing, gallery và
-                        site settings.
+                {mediaMenu === "upload" && (
+                  <section className={styles.settingGrid}>
+                    <section className={styles.panel}>
+                      <div className={styles.panelHeader}>
+                        <div>
+                          <div className={styles.panelTitle}>
+                            Upload file mới
+                          </div>
+                          <div className={styles.panelText}>
+                            Chọn đúng module, folder, tag để quản lý file theo
+                            ngữ cảnh và tìm lại nhanh hơn.
+                          </div>
+                        </div>
+                        <div className={styles.row}>
+                          <button
+                            className={styles.buttonSecondary}
+                            type="button"
+                            onClick={() => setShowFolderModal(true)}
+                          >
+                            + Tạo folder
+                          </button>
+                          <button
+                            className={styles.buttonGhost}
+                            type="button"
+                            onClick={() => setShowTagModal(true)}
+                          >
+                            + Tạo tag
+                          </button>
+                        </div>
                       </div>
-                    </div>
-                    <div className={styles.badgeRow}>
-                      <span className={styles.badge}>
-                        {filteredMedia.length} file
-                      </span>
-                      <button
-                        className={styles.buttonGhost}
-                        type="button"
-                        onClick={() => showPreview("/#gallery")}
-                      >
-                        Preview gallery
-                      </button>
-                    </div>
-                  </div>
-                  {filteredMedia.length === 0 ? (
-                    <div className={styles.emptyState}>
-                      Chưa có file nào khớp bộ lọc hiện tại.
-                    </div>
-                  ) : (
-                    <div className={styles.mediaGrid}>
-                      {filteredMedia.map((item) => (
-                        <article key={item.id} className={styles.mediaCard}>
-                          <Image
-                            className={styles.mediaThumb}
-                            src={item.url}
-                            alt={item.originalName}
-                            width={640}
-                            height={480}
-                            unoptimized
+                      <div className={styles.uploadGuide}>
+                        <div className={styles.uploadGuideTitle}>
+                          Quy trình upload gợi ý
+                        </div>
+                        <ul className={styles.uploadGuideList}>
+                          <li>
+                            1) Chọn module (ví dụ: general, gallery, events).
+                          </li>
+                          <li>2) Chọn folder để gom nhóm theo chiến dịch.</li>
+                          <li>
+                            3) Gắn tag để lọc nhanh khi chọn ảnh cho form khác.
+                          </li>
+                          <li>
+                            4) Upload 1 hoặc nhiều file trong cùng một lần.
+                          </li>
+                        </ul>
+                      </div>
+                      <form className={styles.formGrid} onSubmit={uploadMedia}>
+                        <div className={`${styles.fieldBlock} ${styles.full}`}>
+                          <label className={styles.fieldLabel}>
+                            File upload
+                          </label>
+                          <input
+                            className={`${styles.file} ${styles.full}`}
+                            type="file"
+                            multiple
+                            onChange={(e) =>
+                              setUploadFiles(Array.from(e.target.files ?? []))
+                            }
                           />
-                          <div className={styles.mediaName}>
-                            {item.originalName}
+                          <div className={styles.helper}>
+                            Hỗ trợ chọn nhiều file cùng lúc. Định dạng và dung
+                            lượng tuân theo cấu hình backend.
                           </div>
-                          <div className={styles.mediaMeta}>
-                            {item.module} · {Math.round(item.sizeBytes / 1024)}{" "}
-                            KB
+                        </div>
+                        <div className={`${styles.helper} ${styles.full}`}>
+                          {uploadFiles.length > 0
+                            ? `Đã chọn ${uploadFiles.length} file để upload.`
+                            : "Có thể chọn 1 hoặc nhiều file trong một lần upload."}
+                        </div>
+                        <div className={styles.fieldBlock}>
+                          <label className={styles.fieldLabel}>Module</label>
+                          <input
+                            className={styles.input}
+                            value={mediaModule}
+                            onChange={(e) => setMediaModule(e.target.value)}
+                            placeholder="Ví dụ: general, gallery, events"
+                          />
+                          <div className={styles.helper}>
+                            Module giúp backend lưu file đúng thư mục nghiệp vụ.
                           </div>
-                          <div className={styles.tagRow}>
-                            {item.folderId && (
-                              <span
-                                className={
-                                  styles.badgeMuted + " " + styles.badge
-                                }
-                              >
-                                {folderMap[item.folderId]?.name ?? "Folder"}
+                        </div>
+                        <div className={styles.fieldBlock}>
+                          <label className={styles.fieldLabel}>Folder</label>
+                          <select
+                            className={styles.select}
+                            value={uploadFolderId}
+                            onChange={(e) => setUploadFolderId(e.target.value)}
+                          >
+                            <option value="">Chọn folder</option>
+                            {folders.map((folder) => (
+                              <option key={folder.id} value={folder.id}>
+                                {folder.name}
+                              </option>
+                            ))}
+                          </select>
+                          <div className={styles.helper}>
+                            Folder giúp nhóm media theo từng chiến dịch hoặc chủ
+                            đề.
+                          </div>
+                        </div>
+                        <div className={`${styles.fieldBlock} ${styles.full}`}>
+                          <label className={styles.fieldLabel}>
+                            Tag (đa chọn)
+                          </label>
+                          <div className={styles.tagPickerGrid}>
+                            {tags.length === 0 ? (
+                              <span className={styles.helper}>
+                                Chưa có tag.
                               </span>
+                            ) : (
+                              tags.map((tag) => (
+                                <label
+                                  key={tag.id}
+                                  className={styles.tagPickerItem}
+                                >
+                                  <input
+                                    type="checkbox"
+                                    checked={uploadTagIds.includes(tag.id)}
+                                    onChange={(e) =>
+                                      setUploadTagIds((prev) =>
+                                        e.target.checked
+                                          ? [...prev, tag.id]
+                                          : prev.filter((id) => id !== tag.id),
+                                      )
+                                    }
+                                  />
+                                  <span>{tag.name}</span>
+                                </label>
+                              ))
                             )}
-                            {item.tagIds.slice(0, 2).map((tagId) => (
+                          </div>
+                          <div className={styles.helper}>
+                            Chọn trực tiếp nhiều tag để gắn vào toàn bộ file
+                            trong lần upload này.
+                          </div>
+                        </div>
+                        {uploadTagIds.length > 0 && (
+                          <div className={`${styles.tagRow} ${styles.full}`}>
+                            {uploadTagIds.map((tagId) => (
                               <span
                                 key={tagId}
                                 className={
@@ -1495,23 +1604,335 @@ export default function AdminConsole() {
                               </span>
                             ))}
                           </div>
-                          <div className={styles.mediaFooter}>
-                            <span className={styles.helper}>
-                              {item.isActive ? "Đang dùng" : "Ẩn"}
-                            </span>
+                        )}
+                        <button
+                          className={`${styles.button} ${styles.full}`}
+                          type="submit"
+                          disabled={uploading}
+                        >
+                          {uploading
+                            ? "Đang upload..."
+                            : "Upload và thêm vào thư viện"}
+                        </button>
+                      </form>
+                    </section>
+                  </section>
+                )}
+
+                {mediaMenu === "library" && (
+                  <section className={styles.panel}>
+                    <div className={styles.panelHeader}>
+                      <div>
+                        <div className={styles.panelTitle}>Media library</div>
+                        <div className={styles.panelText}>
+                          Danh sách media được tách riêng theo menu để duyệt
+                          nhanh, không bị rối khi upload.
+                        </div>
+                      </div>
+                      <div className={styles.badgeRow}>
+                        <span className={styles.badge}>
+                          {visibleMedia.length}/{filteredMedia.length} file
+                        </span>
+                        <button
+                          className={styles.buttonGhost}
+                          type="button"
+                          onClick={() => showPreview("/#gallery")}
+                        >
+                          Preview gallery
+                        </button>
+                      </div>
+                    </div>
+                    <div className={styles.filterBlock}>
+                      <select
+                        className={styles.select}
+                        value={mediaFolderFilter}
+                        onChange={(e) => setMediaFolderFilter(e.target.value)}
+                      >
+                        <option value="">Tất cả folder</option>
+                        {folders.map((folder) => (
+                          <option key={folder.id} value={folder.id}>
+                            {folder.name}
+                          </option>
+                        ))}
+                      </select>
+                      <select
+                        className={styles.select}
+                        value={mediaTagFilter}
+                        onChange={(e) => setMediaTagFilter(e.target.value)}
+                      >
+                        <option value="">Tất cả tag</option>
+                        {tags.map((tag) => (
+                          <option key={tag.id} value={tag.id}>
+                            {tag.name}
+                          </option>
+                        ))}
+                      </select>
+                      <input
+                        className={styles.input}
+                        value={mediaKeyword}
+                        onChange={(e) => setMediaKeyword(e.target.value)}
+                        placeholder="Tìm tên file hoặc storage key"
+                      />
+                      <button
+                        className={styles.buttonGhost}
+                        type="button"
+                        onClick={resetMediaFilters}
+                      >
+                        Xóa bộ lọc
+                      </button>
+                    </div>
+                    <div className={styles.filterSummary}>
+                      {mediaFolderFilter && (
+                        <span className={styles.metaPill}>
+                          Folder:{" "}
+                          {folderMap[mediaFolderFilter]?.name ??
+                            mediaFolderFilter}
+                        </span>
+                      )}
+                      {mediaTagFilter && (
+                        <span className={styles.metaPill}>
+                          Tag: {tagMap[mediaTagFilter]?.name ?? mediaTagFilter}
+                        </span>
+                      )}
+                      <span className={styles.metaPill}>
+                        {filteredMedia.length} file khớp
+                      </span>
+                    </div>
+                    {filteredMedia.length === 0 ? (
+                      <div className={styles.emptyState}>
+                        Chưa có file nào khớp bộ lọc hiện tại.
+                      </div>
+                    ) : (
+                      <>
+                        <div className={styles.mediaGrid}>
+                          {visibleMedia.map((item) => (
+                            <article key={item.id} className={styles.mediaCard}>
+                              <Image
+                                className={styles.mediaThumb}
+                                src={item.url}
+                                alt={item.originalName}
+                                width={640}
+                                height={480}
+                                unoptimized
+                              />
+                              <div className={styles.mediaName}>
+                                {item.originalName}
+                              </div>
+                              <div className={styles.mediaMeta}>
+                                {item.module} ·{" "}
+                                {Math.round(item.sizeBytes / 1024)}
+                                KB
+                              </div>
+                              <div className={styles.tagRow}>
+                                {item.folderId && (
+                                  <span
+                                    className={
+                                      styles.badgeMuted + " " + styles.badge
+                                    }
+                                  >
+                                    {folderMap[item.folderId]?.name ?? "Folder"}
+                                  </span>
+                                )}
+                                {item.tagIds.slice(0, 2).map((tagId) => (
+                                  <span
+                                    key={tagId}
+                                    className={
+                                      styles.badgeMuted + " " + styles.badge
+                                    }
+                                  >
+                                    {tagMap[tagId]?.name ?? tagId}
+                                  </span>
+                                ))}
+                              </div>
+                              <div className={styles.mediaFooter}>
+                                <span className={styles.helper}>
+                                  {item.isActive ? "Đang dùng" : "Ẩn"}
+                                </span>
+                                <button
+                                  className={styles.buttonDanger}
+                                  type="button"
+                                  onClick={() => void deleteMedia(item.id)}
+                                >
+                                  Xóa mềm
+                                </button>
+                              </div>
+                            </article>
+                          ))}
+                        </div>
+                        {hasMoreMedia && (
+                          <div className={styles.loadMoreWrap}>
                             <button
-                              className={styles.buttonDanger}
+                              className={styles.buttonSecondary}
                               type="button"
-                              onClick={() => void deleteMedia(item.id)}
+                              onClick={() =>
+                                setMediaVisibleCount(
+                                  (prev) => prev + MEDIA_BATCH_SIZE,
+                                )
+                              }
                             >
-                              Xóa mềm
+                              Xem thêm{" "}
+                              {Math.min(
+                                MEDIA_BATCH_SIZE,
+                                filteredMedia.length - visibleMedia.length,
+                              )}{" "}
+                              file
                             </button>
                           </div>
-                        </article>
-                      ))}
-                    </div>
-                  )}
-                </section>
+                        )}
+                      </>
+                    )}
+                  </section>
+                )}
+
+                {showFolderModal && (
+                  <div
+                    className={styles.modalOverlay}
+                    role="presentation"
+                    onClick={() => !creatingFolder && setShowFolderModal(false)}
+                  >
+                    <section
+                      className={styles.modalCard}
+                      role="dialog"
+                      aria-modal="true"
+                      aria-label="Tạo folder"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <div className={styles.panelHeader}>
+                        <div>
+                          <div className={styles.panelTitle}>
+                            Tạo folder mới
+                          </div>
+                          <div className={styles.panelText}>
+                            Folder giúp tổ chức media theo nhóm nghiệp vụ để dễ
+                            quản lý lâu dài.
+                          </div>
+                        </div>
+                        <button
+                          className={styles.buttonGhost}
+                          type="button"
+                          onClick={() => setShowFolderModal(false)}
+                          disabled={creatingFolder}
+                        >
+                          Đóng
+                        </button>
+                      </div>
+                      <form className={styles.formGrid} onSubmit={createFolder}>
+                        <div className={styles.fieldBlock}>
+                          <label className={styles.fieldLabel}>
+                            Tên folder
+                          </label>
+                          <input
+                            className={styles.input}
+                            value={folderName}
+                            onChange={(e) => setFolderName(e.target.value)}
+                            placeholder="Ví dụ: sinh-nhat-be-trai"
+                            required
+                          />
+                        </div>
+                        <div className={styles.fieldBlock}>
+                          <label className={styles.fieldLabel}>Slug</label>
+                          <input
+                            className={styles.input}
+                            value={folderSlug}
+                            onChange={(e) => setFolderSlug(e.target.value)}
+                            placeholder="Ví dụ: sinh-nhat-be-trai"
+                            required
+                          />
+                        </div>
+                        <div className={`${styles.row} ${styles.full}`}>
+                          <button
+                            className={styles.buttonSecondary}
+                            type="button"
+                            onClick={() => setShowFolderModal(false)}
+                            disabled={creatingFolder}
+                          >
+                            Hủy
+                          </button>
+                          <button
+                            className={styles.button}
+                            type="submit"
+                            disabled={creatingFolder}
+                          >
+                            {creatingFolder ? "Đang lưu..." : "Lưu folder"}
+                          </button>
+                        </div>
+                      </form>
+                    </section>
+                  </div>
+                )}
+
+                {showTagModal && (
+                  <div
+                    className={styles.modalOverlay}
+                    role="presentation"
+                    onClick={() => !creatingTag && setShowTagModal(false)}
+                  >
+                    <section
+                      className={styles.modalCard}
+                      role="dialog"
+                      aria-modal="true"
+                      aria-label="Tạo tag"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <div className={styles.panelHeader}>
+                        <div>
+                          <div className={styles.panelTitle}>Tạo tag mới</div>
+                          <div className={styles.panelText}>
+                            Tag giúp lọc nhanh media theo concept, campaign, sản
+                            phẩm.
+                          </div>
+                        </div>
+                        <button
+                          className={styles.buttonGhost}
+                          type="button"
+                          onClick={() => setShowTagModal(false)}
+                          disabled={creatingTag}
+                        >
+                          Đóng
+                        </button>
+                      </div>
+                      <form className={styles.formGrid} onSubmit={createTag}>
+                        <div className={styles.fieldBlock}>
+                          <label className={styles.fieldLabel}>Tên tag</label>
+                          <input
+                            className={styles.input}
+                            value={tagName}
+                            onChange={(e) => setTagName(e.target.value)}
+                            placeholder="Ví dụ: premium"
+                            required
+                          />
+                        </div>
+                        <div className={styles.fieldBlock}>
+                          <label className={styles.fieldLabel}>Slug</label>
+                          <input
+                            className={styles.input}
+                            value={tagSlug}
+                            onChange={(e) => setTagSlug(e.target.value)}
+                            placeholder="Ví dụ: premium"
+                            required
+                          />
+                        </div>
+                        <div className={`${styles.row} ${styles.full}`}>
+                          <button
+                            className={styles.buttonSecondary}
+                            type="button"
+                            onClick={() => setShowTagModal(false)}
+                            disabled={creatingTag}
+                          >
+                            Hủy
+                          </button>
+                          <button
+                            className={styles.button}
+                            type="submit"
+                            disabled={creatingTag}
+                          >
+                            {creatingTag ? "Đang lưu..." : "Lưu tag"}
+                          </button>
+                        </div>
+                      </form>
+                    </section>
+                  </div>
+                )}
               </>
             )}
 
@@ -1569,23 +1990,67 @@ export default function AdminConsole() {
                         }
                         placeholder="Mô tả"
                       />
-                      <select
-                        className={styles.select}
-                        value={eventForm.coverMediaId}
-                        onChange={(e) =>
-                          setEventForm((prev) => ({
-                            ...prev,
-                            coverMediaId: e.target.value,
-                          }))
-                        }
-                      >
-                        <option value="">Chọn ảnh cover</option>
-                        {filteredMedia.map((item) => (
-                          <option key={item.id} value={item.id}>
-                            {item.originalName}
-                          </option>
-                        ))}
-                      </select>
+                      <div className={`${styles.full} ${styles.fieldBlock}`}>
+                        <label className={styles.fieldLabel}>Ảnh cover</label>
+                        <input
+                          className={styles.input}
+                          value={eventCoverKeyword}
+                          onChange={(e) => setEventCoverKeyword(e.target.value)}
+                          placeholder="Tìm tên ảnh cover"
+                        />
+                        <div className={styles.mediaNamePicker}>
+                          {visibleEventCoverCandidates.map((item) => {
+                            const isSelected =
+                              eventForm.coverMediaId === item.id;
+                            return (
+                              <label
+                                key={item.id}
+                                className={`${styles.mediaNameItem} ${isSelected ? styles.mediaNameItemActive : ""}`}
+                              >
+                                <input
+                                  type="radio"
+                                  name="event-cover-media"
+                                  checked={isSelected}
+                                  onChange={() =>
+                                    setEventForm((prev) => ({
+                                      ...prev,
+                                      coverMediaId: item.id,
+                                    }))
+                                  }
+                                />
+                                <span>{item.originalName}</span>
+                              </label>
+                            );
+                          })}
+                        </div>
+                        {hasMoreEventCoverCandidates && (
+                          <div className={styles.loadMoreWrap}>
+                            <button
+                              className={styles.buttonSecondary}
+                              type="button"
+                              onClick={() =>
+                                setEventCoverVisibleCount(
+                                  (prev) => prev + MEDIA_PICKER_BATCH_SIZE,
+                                )
+                              }
+                            >
+                              Xem thêm tên ảnh
+                            </button>
+                          </div>
+                        )}
+                        {selectedEventCoverMedia && (
+                          <div className={styles.mediaPreviewCard}>
+                            <Image
+                              src={selectedEventCoverMedia.url}
+                              alt={selectedEventCoverMedia.originalName}
+                              width={96}
+                              height={72}
+                              className={styles.mediaPreviewThumb}
+                              unoptimized
+                            />
+                          </div>
+                        )}
+                      </div>
                       <input
                         className={styles.input}
                         type="number"
@@ -1613,8 +2078,16 @@ export default function AdminConsole() {
                       </label>
                       <div className={styles.full}>
                         <div className={styles.helper}>Ảnh chi tiết</div>
+                        <input
+                          className={styles.input}
+                          value={eventDetailKeyword}
+                          onChange={(e) =>
+                            setEventDetailKeyword(e.target.value)
+                          }
+                          placeholder="Tìm tên ảnh chi tiết"
+                        />
                         <div className={styles.checkboxList}>
-                          {filteredMedia.map((item) => (
+                          {visibleEventDetailCandidates.map((item) => (
                             <label
                               key={item.id}
                               className={styles.checkboxItem}
@@ -1639,6 +2112,27 @@ export default function AdminConsole() {
                             </label>
                           ))}
                         </div>
+                        {hasMoreEventDetailCandidates && (
+                          <div className={styles.loadMoreWrap}>
+                            <button
+                              className={styles.buttonSecondary}
+                              type="button"
+                              onClick={() =>
+                                setEventDetailVisibleCount(
+                                  (prev) => prev + MEDIA_PICKER_BATCH_SIZE,
+                                )
+                              }
+                            >
+                              Xem thêm tên ảnh
+                            </button>
+                          </div>
+                        )}
+                        {eventForm.imageMediaIds.length > 0 && (
+                          <div className={styles.selectionSummary}>
+                            Đã chọn {eventForm.imageMediaIds.length} ảnh chi
+                            tiết.
+                          </div>
+                        )}
                       </div>
                       <div className={`${styles.row} ${styles.full}`}>
                         <button className={styles.button} type="submit">
@@ -1801,23 +2295,67 @@ export default function AdminConsole() {
                       }
                       placeholder="Tagline"
                     />
-                    <select
-                      className={styles.select}
-                      value={pricingForm.imageMediaId}
-                      onChange={(e) =>
-                        setPricingForm((prev) => ({
-                          ...prev,
-                          imageMediaId: e.target.value,
-                        }))
-                      }
-                    >
-                      <option value="">Chọn ảnh gói giá</option>
-                      {filteredMedia.map((item) => (
-                        <option key={item.id} value={item.id}>
-                          {item.originalName}
-                        </option>
-                      ))}
-                    </select>
+                    <div className={`${styles.full} ${styles.fieldBlock}`}>
+                      <label className={styles.fieldLabel}>Ảnh gói giá</label>
+                      <input
+                        className={styles.input}
+                        value={pricingMediaKeyword}
+                        onChange={(e) => setPricingMediaKeyword(e.target.value)}
+                        placeholder="Tìm tên ảnh gói giá"
+                      />
+                      <div className={styles.mediaNamePicker}>
+                        {visiblePricingMediaCandidates.map((item) => {
+                          const isSelected =
+                            pricingForm.imageMediaId === item.id;
+                          return (
+                            <label
+                              key={item.id}
+                              className={`${styles.mediaNameItem} ${isSelected ? styles.mediaNameItemActive : ""}`}
+                            >
+                              <input
+                                type="radio"
+                                name="pricing-media"
+                                checked={isSelected}
+                                onChange={() =>
+                                  setPricingForm((prev) => ({
+                                    ...prev,
+                                    imageMediaId: item.id,
+                                  }))
+                                }
+                              />
+                              <span>{item.originalName}</span>
+                            </label>
+                          );
+                        })}
+                      </div>
+                      {hasMorePricingMediaCandidates && (
+                        <div className={styles.loadMoreWrap}>
+                          <button
+                            className={styles.buttonSecondary}
+                            type="button"
+                            onClick={() =>
+                              setPricingMediaVisibleCount(
+                                (prev) => prev + MEDIA_PICKER_BATCH_SIZE,
+                              )
+                            }
+                          >
+                            Xem thêm tên ảnh
+                          </button>
+                        </div>
+                      )}
+                      {selectedPricingMedia && (
+                        <div className={styles.mediaPreviewCard}>
+                          <Image
+                            src={selectedPricingMedia.url}
+                            alt={selectedPricingMedia.originalName}
+                            width={96}
+                            height={72}
+                            className={styles.mediaPreviewThumb}
+                            unoptimized
+                          />
+                        </div>
+                      )}
+                    </div>
                     <input
                       className={styles.input}
                       type="number"
@@ -2084,15 +2622,44 @@ export default function AdminConsole() {
                     </div>
                   </div>
                   <form className={styles.formGrid} onSubmit={saveGalleryItem}>
+                    <div className={`${styles.full} ${styles.fieldBlock}`}>
+                      <label className={styles.fieldLabel}>
+                        Danh sách category
+                      </label>
+                      <div className={styles.categoryPickList}>
+                        {galleryCategories.length === 0 ? (
+                          <div className={styles.helper}>
+                            Chưa có category. Hãy tạo category trước khi thêm
+                            item.
+                          </div>
+                        ) : (
+                          galleryCategories.map((category) => {
+                            const isActive =
+                              galleryItemForm.categoryId === category.id;
+                            return (
+                              <button
+                                key={category.id}
+                                type="button"
+                                className={`${styles.categoryPickButton} ${isActive ? styles.categoryPickButtonActive : ""}`}
+                                onClick={() =>
+                                  applyGalleryCategory(category.id)
+                                }
+                              >
+                                <span>{category.name}</span>
+                                <span className={styles.categoryPickMeta}>
+                                  {galleryItemCountByCategory[category.id] || 0}{" "}
+                                  ảnh
+                                </span>
+                              </button>
+                            );
+                          })
+                        )}
+                      </div>
+                    </div>
                     <select
                       className={styles.select}
                       value={galleryItemForm.categoryId}
-                      onChange={(e) =>
-                        setGalleryItemForm((prev) => ({
-                          ...prev,
-                          categoryId: e.target.value,
-                        }))
-                      }
+                      onChange={(e) => applyGalleryCategory(e.target.value)}
                     >
                       <option value="">Chọn category</option>
                       {galleryCategories.map((category) => (
@@ -2101,23 +2668,55 @@ export default function AdminConsole() {
                         </option>
                       ))}
                     </select>
-                    <select
-                      className={styles.select}
-                      value={galleryItemForm.mediaFileId}
-                      onChange={(e) =>
-                        setGalleryItemForm((prev) => ({
-                          ...prev,
-                          mediaFileId: e.target.value,
-                        }))
-                      }
-                    >
-                      <option value="">Chọn file</option>
-                      {filteredMedia.map((item) => (
-                        <option key={item.id} value={item.id}>
-                          {item.originalName}
-                        </option>
-                      ))}
-                    </select>
+                    <div className={`${styles.full} ${styles.fieldBlock}`}>
+                      <label className={styles.fieldLabel}>File media</label>
+                      <input
+                        className={styles.input}
+                        value={galleryMediaKeyword}
+                        onChange={(e) => setGalleryMediaKeyword(e.target.value)}
+                        placeholder="Tìm tên file media"
+                      />
+                      <div className={styles.mediaNamePicker}>
+                        {visibleGalleryMediaCandidates.map((item) => {
+                          const isSelected =
+                            galleryItemForm.mediaFileId === item.id;
+                          return (
+                            <label
+                              key={item.id}
+                              className={`${styles.mediaNameItem} ${isSelected ? styles.mediaNameItemActive : ""}`}
+                            >
+                              <input
+                                type="radio"
+                                name="gallery-item-media"
+                                checked={isSelected}
+                                onChange={() =>
+                                  setGalleryItemForm((prev) => ({
+                                    ...prev,
+                                    mediaFileId: item.id,
+                                  }))
+                                }
+                              />
+                              <span>{item.originalName}</span>
+                            </label>
+                          );
+                        })}
+                      </div>
+                      {hasMoreGalleryMediaCandidates && (
+                        <div className={styles.loadMoreWrap}>
+                          <button
+                            className={styles.buttonSecondary}
+                            type="button"
+                            onClick={() =>
+                              setGalleryMediaVisibleCount(
+                                (prev) => prev + MEDIA_PICKER_BATCH_SIZE,
+                              )
+                            }
+                          >
+                            Xem thêm tên ảnh
+                          </button>
+                        </div>
+                      )}
+                    </div>
                     <div
                       className={`${styles.full} ${styles.galleryMediaPreview}`}
                     >
@@ -2131,14 +2730,10 @@ export default function AdminConsole() {
                             className={styles.galleryMediaPreviewImage}
                             unoptimized
                           />
-                          <div className={styles.galleryMediaPreviewMeta}>
-                            <strong>{selectedGalleryMedia.originalName}</strong>
-                            <span>{selectedGalleryMedia.url}</span>
-                          </div>
                         </>
                       ) : (
                         <div className={styles.helper}>
-                          Chọn file để xem trước ảnh nhỏ và URL tương ứng.
+                          Chọn file để xem trước ảnh nhỏ tương ứng.
                         </div>
                       )}
                     </div>
@@ -2202,13 +2797,190 @@ export default function AdminConsole() {
                       </button>
                     </div>
                   </form>
+
+                  <form
+                    className={`${styles.formGrid} ${styles.galleryBulkPanel}`}
+                    onSubmit={createGalleryItemsBulk}
+                  >
+                    <div className={styles.full}>
+                      <div className={styles.panelTitle}>
+                        Thêm nhanh nhiều ảnh
+                      </div>
+                      <div className={styles.panelText}>
+                        Chọn category, tick nhiều ảnh theo tên file rồi thêm một
+                        lần.
+                      </div>
+                    </div>
+                    <select
+                      className={styles.select}
+                      value={galleryBulkCategoryId}
+                      onChange={(e) => applyGalleryCategory(e.target.value)}
+                    >
+                      <option value="">Chọn category để thêm nhanh</option>
+                      {galleryCategories.map((category) => (
+                        <option key={category.id} value={category.id}>
+                          {category.name}
+                        </option>
+                      ))}
+                    </select>
+                    <input
+                      className={styles.input}
+                      type="number"
+                      min={1}
+                      value={galleryBulkStartOrder}
+                      onChange={(e) =>
+                        setGalleryBulkStartOrder(Number(e.target.value) || 1)
+                      }
+                      placeholder="Thứ tự bắt đầu"
+                    />
+                    <label className={styles.checkboxItem}>
+                      <input
+                        type="checkbox"
+                        checked={galleryBulkIsActive}
+                        onChange={(e) =>
+                          setGalleryBulkIsActive(e.target.checked)
+                        }
+                      />
+                      Tạo mới ở trạng thái kích hoạt
+                    </label>
+                    <div className={`${styles.full} ${styles.fieldBlock}`}>
+                      <label className={styles.fieldLabel}>
+                        Chọn nhiều ảnh theo tên
+                      </label>
+                      <input
+                        className={styles.input}
+                        value={galleryBulkKeyword}
+                        onChange={(e) => setGalleryBulkKeyword(e.target.value)}
+                        placeholder="Tìm ảnh theo tên file"
+                      />
+                      <div className={styles.bulkActionsRow}>
+                        <button
+                          className={styles.buttonSecondary}
+                          type="button"
+                          onClick={() => {
+                            const visibleIds = visibleGalleryBulkCandidates
+                              .map((item) => item.id)
+                              .filter(
+                                (id) => !galleryBulkExistingMediaSet.has(id),
+                              );
+                            setGalleryBulkMediaIds((prev) =>
+                              Array.from(new Set([...prev, ...visibleIds])),
+                            );
+                          }}
+                        >
+                          Chọn tất cả danh sách đang hiển thị
+                        </button>
+                        <button
+                          className={styles.buttonGhost}
+                          type="button"
+                          onClick={() => setGalleryBulkMediaIds([])}
+                        >
+                          Bỏ chọn tất cả
+                        </button>
+                      </div>
+
+                      <div className={styles.mediaNamePicker}>
+                        {visibleGalleryBulkCandidates.map((item) => {
+                          const isChecked = galleryBulkMediaIds.includes(
+                            item.id,
+                          );
+                          const isExisting = galleryBulkExistingMediaSet.has(
+                            item.id,
+                          );
+                          return (
+                            <label
+                              key={item.id}
+                              className={`${styles.mediaNameItem} ${isChecked ? styles.mediaNameItemActive : ""} ${isExisting ? styles.mediaNameItemDisabled : ""}`}
+                            >
+                              <input
+                                type="checkbox"
+                                checked={isChecked}
+                                disabled={isExisting}
+                                onChange={(e) => {
+                                  const checked = e.target.checked;
+                                  setGalleryBulkMediaIds((prev) => {
+                                    if (checked) {
+                                      return Array.from(
+                                        new Set([...prev, item.id]),
+                                      );
+                                    }
+                                    return prev.filter((id) => id !== item.id);
+                                  });
+                                }}
+                              />
+                              <span>{item.originalName}</span>
+                              {isExisting && (
+                                <span className={styles.metaPill}>Đã có</span>
+                              )}
+                            </label>
+                          );
+                        })}
+                      </div>
+                      {hasMoreGalleryBulkCandidates && (
+                        <div className={styles.loadMoreWrap}>
+                          <button
+                            className={styles.buttonSecondary}
+                            type="button"
+                            onClick={() =>
+                              setGalleryBulkVisibleCount(
+                                (prev) => prev + MEDIA_PICKER_BATCH_SIZE,
+                              )
+                            }
+                          >
+                            Xem thêm tên ảnh
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                    <div
+                      className={`${styles.full} ${styles.selectionSummary}`}
+                    >
+                      Đã chọn {galleryBulkMediaIds.length} ảnh để thêm vào
+                      category.
+                    </div>
+                    <div
+                      className={`${styles.full} ${styles.galleryMediaPreview}`}
+                    >
+                      {selectedGalleryBulkMedia.length > 0 ? (
+                        selectedGalleryBulkMedia.map((item) => (
+                          <Image
+                            key={item.id}
+                            src={item.url}
+                            alt={item.originalName}
+                            width={160}
+                            height={120}
+                            className={styles.galleryMediaPreviewImage}
+                            unoptimized
+                          />
+                        ))
+                      ) : (
+                        <div className={styles.helper}>
+                          Ảnh đã chọn sẽ hiện preview ở đây (tối đa 3 ảnh).
+                        </div>
+                      )}
+                    </div>
+                    <div className={`${styles.row} ${styles.full}`}>
+                      <button
+                        className={styles.button}
+                        type="submit"
+                        disabled={galleryBulkCreating}
+                      >
+                        {galleryBulkCreating
+                          ? "Đang tạo gallery item..."
+                          : "Thêm vào category"}
+                      </button>
+                    </div>
+                  </form>
+
                   <div className={styles.galleryItemCards}>
-                    {galleryItems.length === 0 ? (
+                    {visibleGalleryItems.length === 0 ? (
                       <div className={styles.emptyState}>
-                        Chưa có gallery item nào.
+                        {galleryItemForm.categoryId
+                          ? "Category này chưa có gallery item nào."
+                          : "Chưa có gallery item nào."}
                       </div>
                     ) : (
-                      galleryItems.map((item) => {
+                      visibleGalleryItems.map((item) => {
                         const media = mediaMap[item.mediaFileId];
                         return (
                           <article
