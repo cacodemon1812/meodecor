@@ -12,7 +12,7 @@ export default async function AboutSection() {
             <iframe
               width="100%"
               height="100%"
-              src="https://www.youtube.com/embed/Bje3D4Tn3lU?si=wY-5I-bzRcq7BxQ4"
+              src={ABOUT.videoUrl}
               title="YouTube video player"
               frameBorder="0"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
@@ -28,30 +28,14 @@ export default async function AboutSection() {
               <p>{ABOUT.description}</p>
               <p className="fst-italic">🎈🎈🎈🎈🎈 💁‍♂️ SỐP CAM KẾT :</p>
               <ul>
-                <li>
-                  <i className="bx bx-check-double"></i>Sử dụng khí Heli an toàn
-                  tuyệt đối.
-                </li>
-                <li>
-                  <i className="bx bx-check-double"></i>KHÔNG GÂY CHÁY NỔ.
-                </li>
-                <li>
-                  <i className="bx bx-check-double"></i>Có tem kiểm định của nhà
-                  sản xuất.
-                </li>
-                <li>
-                  <i className="bx bx-check-double"></i>Bơm đủ số lượng bóng nhỏ
-                  trong mỗi quả bóng lớn.
-                </li>
-                <li>
-                  <i className="bx bx-check-double"></i>Phục vụ tận nơi nội
-                  thành Nam Định và các tỉnh lân cận!.
-                </li>
+                {ABOUT.commitments?.map((commitment: string) => (
+                  <li key={commitment}>
+                    <i className="bx bx-check-double"></i>
+                    {commitment}
+                  </li>
+                ))}
               </ul>
-              <p>
-                💥💥💥Bóng bay kích nổ Nam Định💥💥💥 🎈Dịch vụ bóng kích nổ đám
-                cưới, sự kiện tại Nam Định và các tỉnh lân cận
-              </p>
+              <p>{ABOUT.highlight}</p>
             </div>
           </div>
         </div>

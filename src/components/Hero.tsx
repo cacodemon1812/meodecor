@@ -1,24 +1,58 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { HERO_SLIDES, CTA_BUTTONS } from "@/data/constants";
-import { HERO_SLIDES_BG } from "@/services/mockApi";
+import {
+  CTA_BUTTONS,
+  fetchCtaButtons,
+  fetchHeroBackgrounds,
+  fetchHeroSlides,
+  HERO_SLIDES,
+  HERO_SLIDES_BG,
+} from "@/data/constants";
 import Image from "next/image";
 
 export default function Hero() {
+  const [slides, setSlides] = useState(HERO_SLIDES);
+  const [heroBackgrounds, setHeroBackgrounds] = useState(HERO_SLIDES_BG);
+  const [ctaButtons, setCtaButtons] = useState(CTA_BUTTONS);
   const [currentIndex, setCurrentIndex] = useState(0);
 
   useEffect(() => {
+    const load = async () => {
+      const [remoteSlides, remoteBackgrounds, remoteCtas] = await Promise.all([
+        fetchHeroSlides(),
+        fetchHeroBackgrounds(),
+        fetchCtaButtons(),
+      ]);
+      if (remoteSlides?.length) {
+        setSlides(remoteSlides);
+      }
+      if (remoteBackgrounds?.length) {
+        setHeroBackgrounds(remoteBackgrounds);
+      }
+      if (remoteCtas) {
+        setCtaButtons(remoteCtas);
+      }
+    };
+
+    load();
+  }, []);
+
+  useEffect(() => {
+    if (!slides.length) {
+      return;
+    }
+
     const interval = window.setInterval(() => {
-      setCurrentIndex((prev) => (prev + 1) % HERO_SLIDES.length);
+      setCurrentIndex((prev) => (prev + 1) % slides.length);
     }, 5000);
 
     return () => window.clearInterval(interval);
-  }, []);
+  }, [slides]);
 
-  const activeSlide = HERO_SLIDES[currentIndex];
+  const activeSlide = slides[currentIndex] ?? HERO_SLIDES[0];
   const heroBackground =
-    HERO_SLIDES_BG?.[0]?.image ?? "/assets/img/logo/logo.png";
+    heroBackgrounds?.[0]?.image ?? "/assets/img/logo/logo.png";
   const activeSubtitle = activeSlide?.subtitle?.trim()
     ? activeSlide.subtitle
     : (activeSlide?.title ?? "");
@@ -58,11 +92,11 @@ export default function Hero() {
           </p>
 
           <div className="hero-actions hero-actions-fixed">
-            <a href={CTA_BUTTONS.services.href} className="btn-menu scrollto">
-              {CTA_BUTTONS.services.label}
+            <a href={ctaButtons.services.href} className="btn-menu scrollto">
+              {ctaButtons.services.label}
             </a>
-            <a href={CTA_BUTTONS.contact.href} className="btn-book scrollto">
-              {CTA_BUTTONS.contact.label}
+            <a href={ctaButtons.contact.href} className="btn-book scrollto">
+              {ctaButtons.contact.label}
             </a>
           </div>
         </div>

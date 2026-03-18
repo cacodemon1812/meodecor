@@ -1,4 +1,3 @@
-// Mock API / data layer — replace with real API later
 import type {
   NavLink,
   HeroSlide,
@@ -6,6 +5,28 @@ import type {
   EventItem,
   HeroSlideBg,
 } from "@/types";
+
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5001";
+
+async function fetchJson<T>(path: string, fallback: T): Promise<T> {
+  try {
+    const response = await fetch(`${API_BASE_URL}${path}`, {
+      method: "GET",
+      cache: "no-store",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (!response.ok) {
+      return fallback;
+    }
+
+    return (await response.json()) as T;
+  } catch {
+    return fallback;
+  }
+}
 
 export const NAV_LINKS: NavLink[] = [
   { label: "Trang Chủ", href: "#hero", id: "home" },
@@ -54,6 +75,27 @@ export const CTA_BUTTONS = {
 export const ABOUT_DATA = {
   title: "Về Meo Decor",
   description: "Chúng tôi chuyên cung cấp dịch vụ tổ chức sự kiện cho trẻ em",
+  videoUrl: "https://www.youtube.com/embed/Bje3D4Tn3lU?si=wY-5I-bzRcq7BxQ4",
+  commitments: [
+    "Sử dụng khí Heli an toàn tuyệt đối.",
+    "KHÔNG GÂY CHÁY NỔ.",
+    "Có tem kiểm định của nhà sản xuất.",
+    "Bơm đủ số lượng bóng nhỏ trong mỗi quả bóng lớn.",
+    "Phục vụ tận nơi nội thành Nam Định và các tỉnh lân cận!.",
+  ],
+  highlight:
+    "Bóng bay kích nổ Nam Định - Dịch vụ bóng kích nổ đám cưới, sự kiện tại Nam Định và các tỉnh lân cận",
+};
+
+export const CONTACT_DATA = {
+  title: "Liên hệ ngay với",
+  subtitle: "Meo Decor - Party & Event Baby",
+  address: "68/75 Điện Biên - Cửa Bắc - Tp Nam Định",
+  openingHours: "Cả tuần: 6:00 AM - 23:00 PM",
+  fanpage: "https://www.facebook.com/meodecorpartyeventbaby",
+  phone: "0345669006",
+  mapEmbedUrl:
+    "https://www.google.com/maps/embed?pb=!1m17!1m12!1m3!1d786.0147882859981!2d106.16421642030677!3d20.426652417656122!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m2!1m1!2zMjDCsDI1JzM2LjgiTiAxMDbCsDA5JzUzLjAiRQ!5e0!3m2!1svi!2s!4v1713898005528!5m2!1svi!2s",
 };
 
 export const FOOTER_DATA = {
@@ -107,15 +149,54 @@ export const ANIMATIONS = {
   pulse: "animate__animated animate__pulse",
 };
 
-// Simple mock fetch helpers (simulate async API)
-export const fetchNavLinks = async () => {
-  return Promise.resolve(NAV_LINKS);
-};
-export const fetchHeroSlides = async () => Promise.resolve(HERO_SLIDES);
-export const fetchCtaButtons = async () => Promise.resolve(CTA_BUTTONS);
-export const fetchAbout = async () => Promise.resolve(ABOUT_DATA);
-export const fetchFooter = async () => Promise.resolve(FOOTER_DATA);
-export const fetchTopbar = async () => Promise.resolve(TOPBAR_DATA);
+const GALLERY_TABS = [
+  {
+    id: "maubetrai",
+    label: "Mẫu bé trai",
+    images: [
+      "/assets/img/maubetrai/1.jpg",
+      "/assets/img/maubetrai/2.jpg",
+      "/assets/img/maubetrai/3.jpg",
+    ],
+  },
+  {
+    id: "MauBeGai",
+    label: "Mẫu bé gái",
+    images: [
+      "/assets/img/MauBeGai/1.jpg",
+      "/assets/img/MauBeGai/2.jpg",
+      "/assets/img/MauBeGai/3.jpg",
+    ],
+  },
+  {
+    id: "mausangsinmin",
+    label: "Mẫu sang sịn mịn",
+    images: [
+      "/assets/img/SangSinMin/1.jpg",
+      "/assets/img/SangSinMin/2.jpg",
+      "/assets/img/SangSinMin/3.jpg",
+    ],
+  },
+];
+
+export const fetchNavLinks = async () =>
+  fetchJson<NavLink[]>("/api/public/navigation", NAV_LINKS);
+export const fetchHeroSlides = async () =>
+  fetchJson<HeroSlide[]>("/api/public/hero-slides", HERO_SLIDES);
+export const fetchHeroBackgrounds = async () =>
+  fetchJson<HeroSlideBg[]>("/api/public/hero-backgrounds", HERO_SLIDES_BG);
+export const fetchCtaButtons = async () =>
+  fetchJson<typeof CTA_BUTTONS>("/api/public/cta-buttons", CTA_BUTTONS);
+export const fetchAbout = async () =>
+  fetchJson<typeof ABOUT_DATA>("/api/public/about", ABOUT_DATA);
+export const fetchContact = async () =>
+  fetchJson<typeof CONTACT_DATA>("/api/public/contact", CONTACT_DATA);
+export const fetchFooter = async () =>
+  fetchJson<typeof FOOTER_DATA>("/api/public/footer", FOOTER_DATA);
+export const fetchTopbar = async () =>
+  fetchJson<typeof TOPBAR_DATA>("/api/public/topbar", TOPBAR_DATA);
+export const fetchGalleryTabs = async () =>
+  fetchJson<typeof GALLERY_TABS>("/api/public/gallery/tabs", GALLERY_TABS);
 
 export const PRICING_DATA: Package[] = [
   {
@@ -157,7 +238,8 @@ export const PRICING_DATA: Package[] = [
   // more packages can be added here
 ];
 
-export const fetchPricing = async () => Promise.resolve(PRICING_DATA);
+export const fetchPricing = async () =>
+  fetchJson<Package[]>("/api/public/pricing", PRICING_DATA);
 
 export const EVENTS_DATA: EventItem[] = [
   {
@@ -194,6 +276,9 @@ export const EVENTS_DATA: EventItem[] = [
   },
 ];
 
-export const fetchEvents = async () => Promise.resolve(EVENTS_DATA);
-export const fetchEventById = async (id: string) =>
-  Promise.resolve(EVENTS_DATA.find((e) => e.id === id));
+export const fetchEvents = async () =>
+  fetchJson<EventItem[]>("/api/public/events", EVENTS_DATA);
+export const fetchEventById = async (id: string) => {
+  const fallback = EVENTS_DATA.find((e) => e.id === id);
+  return fetchJson<EventItem | undefined>(`/api/public/events/${id}`, fallback);
+};
