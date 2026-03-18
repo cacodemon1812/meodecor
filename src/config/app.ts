@@ -30,7 +30,9 @@ export const CONFIG = {
 
   // API endpoints
   api: {
-    baseUrl: process.env.NEXT_PUBLIC_API_URL || "http://localhost:5001",
+    baseUrl:
+      process.env.NEXT_PUBLIC_API_URL?.trim().replace(/\/+$/, "") ||
+      "http://localhost:5001",
     timeout: 10000,
   },
 
