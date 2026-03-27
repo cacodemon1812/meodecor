@@ -575,6 +575,13 @@ export default function AdminConsole() {
     setMediaKeyword("");
   }, []);
 
+  const handleUnauthorized = useCallback(() => {
+    window.localStorage.removeItem("meodecor-admin-token");
+    setToken("");
+    setMessage("");
+    setError("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.");
+  }, []);
+
   const api = useCallback(
     async function api<T>(
       path: string,
@@ -594,6 +601,12 @@ export default function AdminConsole() {
         headers,
       });
       if (!response.ok) {
+        if (response.status === 401) {
+          handleUnauthorized();
+          throw new Error(
+            "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.",
+          );
+        }
         const text = await response.text();
         throw new Error(text || `Request failed: ${response.status}`);
       }
@@ -602,7 +615,7 @@ export default function AdminConsole() {
       }
       return (await response.json()) as T;
     },
-    [token],
+    [handleUnauthorized, token],
   );
 
   const loadAdminData = useCallback(
