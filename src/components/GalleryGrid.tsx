@@ -14,7 +14,14 @@ interface GalleryItem {
   theme?: string;
 }
 
-const galleryItems: GalleryItem[] = [
+interface GalleryTab {
+  id: string;
+  label: string;
+  images: string[];
+}
+
+// Mock fallback data
+const FALLBACK_GALLERY_ITEMS: GalleryItem[] = [
   // Boys collection
   {
     id: "b1",
@@ -100,26 +107,70 @@ const galleryItems: GalleryItem[] = [
   },
 ];
 
+async function fetchGalleryItems(): Promise<GalleryItem[]> {
+  const API_BASE_URL =
+    process.env.NEXT_PUBLIC_API_URL || "http://localhost:5001";
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/public/gallery/tabs`, {
+      cache: "no-store",
+    });
+    if (!response.ok)
+      throw new Error(`Cannot load gallery: ${response.status}`);
+
+    const tabs = (await response.json()) as GalleryTab[];
+    // Flatten tabs to individual items with category
+    const items: GalleryItem[] = [];
+    tabs.forEach((tab) => {
+      tab.images.forEach((src, index) => {
+        items.push({
+          id: `${tab.id}-${index}`,
+          src,
+          category:
+            (tab.id as "boys" | "girls" | "premium" | "events") || "boys",
+          alt: `${tab.label} ${index + 1}`,
+          title: tab.label,
+        });
+      });
+    });
+    return items;
+  } catch (error) {
+    console.warn("Failed to load gallery from API, using fallback:", error);
+    return FALLBACK_GALLERY_ITEMS;
+  }
+}
+
 type FilterCategory = "all" | "boys" | "girls" | "premium" | "events";
 
 export default function GalleryGrid() {
+  const [allItems, setAllItems] = useState<GalleryItem[]>([]);
   const [selectedCategory, setSelectedCategory] =
     useState<FilterCategory>("all");
-  const [filteredItems, setFilteredItems] =
-    useState<GalleryItem[]>(galleryItems);
+  const [filteredItems, setFilteredItems] = useState<GalleryItem[]>([]);
   const [loadedImages, setLoadedImages] = useState<Set<string>>(new Set());
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
 
+  // Fetch gallery items from API on mount
+  useEffect(() => {
+    (async () => {
+      setIsLoading(true);
+      const items = await fetchGalleryItems();
+      setAllItems(items);
+      setIsLoading(false);
+    })();
+  }, []);
+
+  // Filter items when category or allItems changes
   useEffect(() => {
     if (selectedCategory === "all") {
-      setFilteredItems(galleryItems);
+      setFilteredItems(allItems);
     } else {
       setFilteredItems(
-        galleryItems.filter((item) => item.category === selectedCategory),
+        allItems.filter((item) => item.category === selectedCategory),
       );
     }
-  }, [selectedCategory]);
+  }, [selectedCategory, allItems]);
 
   const handleImageLoad = (id: string) => {
     setLoadedImages((prev) => new Set([...prev, id]));
@@ -128,16 +179,6 @@ export default function GalleryGrid() {
   const handleImageClick = (index: number) => {
     setLightboxIndex(index);
     setLightboxOpen(true);
-  };
-
-  const getCategoryLabel = (category: string) => {
-    const labels: { [key: string]: string } = {
-      boys: "Bé Trai",
-      girls: "Bé Gái",
-      premium: "Sang Trọng",
-      events: "Sự Kiện",
-    };
-    return labels[category] || category;
   };
 
   const categories: { label: string; value: FilterCategory; icon: string }[] = [
@@ -191,7 +232,6 @@ export default function GalleryGrid() {
                       : "bg-white text-gray-700 border-2 border-gray-200 hover:border-[#FF6B9D] hover:text-[#FF6B9D] hover:shadow-md"
                   }
                 `}
-                aria-selected={selectedCategory === cat.value}
               >
                 <span className="mr-2 text-lg">{cat.icon}</span>
                 <span className="whitespace-nowrap">{cat.label}</span>
@@ -208,30 +248,30 @@ export default function GalleryGrid() {
           className="gallery-grid-container w-full max-w-full"
           id="gallery-container"
         >
-          <div className="flex flex-wrap justify-center gap-6 md:gap-5 w-full">
-            {filteredItems.map((item, idx) => (
-              <div
-                key={item.id}
-                className="fade-in group w-full sm:w-[calc(50%-10px)] lg:w-[calc(25%-15px)] min-w-0 flex flex-col"
-                style={{ animationDelay: `${idx * 50}ms` }}
-              >
-                <div className="gallery-card rounded-lg overflow-hidden shadow-md border border-gray-200 hover:shadow-xl transition-all duration-300 cursor-pointer relative bg-white w-full flex-1 flex flex-col">
-                  {/* Image */}
-                  <button
-                    type="button"
-                    onClick={() => handleImageClick(idx)}
-                    className="gallery-image-wrapper relative w-full overflow-hidden shrink-0 bg-gray-100 hover:bg-gray-200 transition-colors"
-                    aria-label={`View ${item.title}`}
-                  >
-                    {/^https?:\/\//i.test(item.src) ? (
-                      <img
-                        src={item.src}
-                        alt={item.alt}
-                        onLoad={() => handleImageLoad(item.id)}
-                        className="object-cover transition-transform duration-500 group-hover:scale-105"
-                        style={{ position: "absolute", inset: 0, width: "100%", height: "100%" }}
-                      />
-                    ) : (
+          {isLoading ? (
+            <div className="text-center py-12">
+              <p className="text-gray-500">Đang tải mẫu trang trí...</p>
+            </div>
+          ) : filteredItems.length === 0 ? (
+            <div className="text-center py-12">
+              <p className="text-gray-500">Chưa có mẫu trang trí nào</p>
+            </div>
+          ) : (
+            <div className="flex flex-wrap justify-center gap-6 md:gap-5 w-full">
+              {filteredItems.map((item, idx) => (
+                <div
+                  key={item.id}
+                  className="fade-in group w-full sm:w-[calc(50%-10px)] lg:w-[calc(25%-15px)] min-w-0 flex flex-col"
+                  style={{ animationDelay: `${idx * 50}ms` }}
+                >
+                  <div className="gallery-card rounded-lg overflow-hidden shadow-md border border-gray-200 hover:shadow-xl transition-all duration-300 cursor-pointer relative bg-white w-full flex-1 flex flex-col">
+                    {/* Image */}
+                    <button
+                      type="button"
+                      onClick={() => handleImageClick(idx)}
+                      className="gallery-image-wrapper relative w-full overflow-hidden shrink-0 bg-gray-100 hover:bg-gray-200 transition-colors"
+                      aria-label={`View ${item.title}`}
+                    >
                       <Image
                         src={item.src}
                         alt={item.alt}
@@ -241,30 +281,31 @@ export default function GalleryGrid() {
                         onLoad={() => handleImageLoad(item.id)}
                         quality={80}
                         priority={idx < 4}
+                        unoptimized={/^https?:\/\//i.test(item.src)}
                       />
-                    )}
 
-                    {/* Loading Skeleton */}
-                    {!loadedImages.has(item.id) && (
-                      <div className="absolute inset-0 bg-linear-to-r from-gray-200 via-gray-100 to-gray-200 animate-pulse z-5" />
-                    )}
-                  </button>
+                      {/* Loading Skeleton */}
+                      {!loadedImages.has(item.id) && (
+                        <div className="absolute inset-0 bg-linear-to-r from-gray-200 via-gray-100 to-gray-200 animate-pulse z-5" />
+                      )}
+                    </button>
 
-                  {/* Caption */}
-                  <div className="p-4 text-center bg-white flex-1 flex flex-col justify-center">
-                    <h3 className="text-sm font-semibold text-gray-800 mb-1">
-                      {item.title}
-                    </h3>
-                    {item.theme && (
-                      <p className="text-xs text-gray-500 font-medium">
-                        {item.theme}
-                      </p>
-                    )}
+                    {/* Caption */}
+                    <div className="p-4 text-center bg-white flex-1 flex flex-col justify-center">
+                      <h3 className="text-sm font-semibold text-gray-800 mb-1">
+                        {item.title}
+                      </h3>
+                      {item.theme && (
+                        <p className="text-xs text-gray-500 font-medium">
+                          {item.theme}
+                        </p>
+                      )}
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Enhanced CTA Section */}

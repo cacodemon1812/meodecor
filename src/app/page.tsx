@@ -7,11 +7,8 @@ import AboutSection from "../components/AboutSection";
 import GalleryTabsClient from "../components/GalleryTabsClient";
 import ContactSection from "../components/ContactSection";
 import Footer from "../components/Footer";
-import { fetchGalleryTabs } from "../data/constants";
 
 export default async function Home() {
-  const galleryTabs = await fetchGalleryTabs();
-
   return (
     <>
       <TopBar />
@@ -22,7 +19,7 @@ export default async function Home() {
       <EventsSection />
       <AboutSection />
 
-      <GalleryTabsClient tabs={galleryTabs} />
+      <GalleryTabsClient />
 
       <ContactSection />
       <Footer />

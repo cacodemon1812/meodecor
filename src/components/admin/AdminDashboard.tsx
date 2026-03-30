@@ -2,6 +2,7 @@
 
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import styles from "./AdminDashboard.module.css";
+import ConfirmActionDialog from "../ui/confirm-action-dialog";
 
 type SectionKey =
   | "dashboard"
@@ -89,6 +90,13 @@ type MediaStats = {
   totalSizeReadable: string;
 };
 
+type ConfirmDialogState = {
+  title: string;
+  description: string;
+  confirmLabel: string;
+  action: () => Promise<void>;
+};
+
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5001";
 
 const EMPTY_EVENT = {
@@ -172,6 +180,38 @@ export default function AdminDashboard() {
   const [galleryItemForm, setGalleryItemForm] = useState(EMPTY_ITEM);
   const [selectedSettingKey, setSelectedSettingKey] = useState("");
   const [settingJson, setSettingJson] = useState("{}");
+  const [confirmDialog, setConfirmDialog] = useState<ConfirmDialogState | null>(
+    null,
+  );
+  const [confirmLoading, setConfirmLoading] = useState(false);
+
+  function requestConfirmAction(config: ConfirmDialogState) {
+    setConfirmDialog(config);
+  }
+
+  function handleConfirmOpenChange(open: boolean) {
+    if (confirmLoading) {
+      return;
+    }
+
+    if (!open) {
+      setConfirmDialog(null);
+    }
+  }
+
+  async function handleConfirmAction() {
+    if (!confirmDialog) {
+      return;
+    }
+
+    setConfirmLoading(true);
+    try {
+      await confirmDialog.action();
+      setConfirmDialog(null);
+    } finally {
+      setConfirmLoading(false);
+    }
+  }
 
   useEffect(() => {
     const storedToken =
@@ -255,7 +295,7 @@ export default function AdminDashboard() {
         settingsData,
       ] = await Promise.all([
         api<MediaStats>("/api/admin/media/stats"),
-        api<{ items: MediaItem[] }>(`/api/admin/media?page=1&pageSize=200`),
+        api<{ items: MediaItem[] }>(`/api/admin/media?page=1&pageSize=100`),
         api<Folder[]>("/api/admin/media/folders"),
         api<Tag[]>("/api/admin/media/tags"),
         api<EventItem[]>("/api/admin/events"),
@@ -381,17 +421,21 @@ export default function AdminDashboard() {
   }
 
   async function deleteMedia(id: string) {
-    if (!window.confirm("Xóa mềm file này?")) {
-      return;
-    }
-
-    try {
-      await api(`/api/admin/media/${id}`, { method: "DELETE" });
-      setMessage("Đã xóa mềm file.");
-      await loadAdminData();
-    } catch (deleteError) {
-      setError(getErrorMessage(deleteError));
-    }
+    requestConfirmAction({
+      title: "Xóa mềm file này?",
+      description:
+        "File sẽ bị ẩn khỏi thư viện media và các bộ chọn hiện tại sau khi xác nhận.",
+      confirmLabel: "Xóa file",
+      action: async () => {
+        try {
+          await api(`/api/admin/media/${id}`, { method: "DELETE" });
+          setMessage("Đã xóa mềm file.");
+          await loadAdminData();
+        } catch (deleteError) {
+          setError(getErrorMessage(deleteError));
+        }
+      },
+    });
   }
 
   async function saveEvent(event: FormEvent<HTMLFormElement>) {
@@ -428,17 +472,21 @@ export default function AdminDashboard() {
   }
 
   async function deleteEvent(id: string) {
-    if (!window.confirm("Xóa sự kiện này?")) {
-      return;
-    }
-
-    try {
-      await api(`/api/admin/events/${id}`, { method: "DELETE" });
-      setMessage("Đã xóa sự kiện.");
-      await loadAdminData();
-    } catch (deleteError) {
-      setError(getErrorMessage(deleteError));
-    }
+    requestConfirmAction({
+      title: "Xóa sự kiện này?",
+      description:
+        "Sự kiện sẽ bị gỡ khỏi danh sách hiển thị sau khi bạn xác nhận thao tác này.",
+      confirmLabel: "Xóa sự kiện",
+      action: async () => {
+        try {
+          await api(`/api/admin/events/${id}`, { method: "DELETE" });
+          setMessage("Đã xóa sự kiện.");
+          await loadAdminData();
+        } catch (deleteError) {
+          setError(getErrorMessage(deleteError));
+        }
+      },
+    });
   }
 
   async function savePricing(event: FormEvent<HTMLFormElement>) {
@@ -480,17 +528,21 @@ export default function AdminDashboard() {
   }
 
   async function deletePricing(id: string) {
-    if (!window.confirm("Xóa gói giá này?")) {
-      return;
-    }
-
-    try {
-      await api(`/api/admin/pricing/${id}`, { method: "DELETE" });
-      setMessage("Đã xóa gói giá.");
-      await loadAdminData();
-    } catch (deleteError) {
-      setError(getErrorMessage(deleteError));
-    }
+    requestConfirmAction({
+      title: "Xóa gói giá này?",
+      description:
+        "Gói giá sẽ bị gỡ khỏi bảng giá và không còn hiển thị cho khách truy cập.",
+      confirmLabel: "Xóa gói giá",
+      action: async () => {
+        try {
+          await api(`/api/admin/pricing/${id}`, { method: "DELETE" });
+          setMessage("Đã xóa gói giá.");
+          await loadAdminData();
+        } catch (deleteError) {
+          setError(getErrorMessage(deleteError));
+        }
+      },
+    });
   }
 
   async function saveCategory(event: FormEvent<HTMLFormElement>) {
@@ -556,17 +608,21 @@ export default function AdminDashboard() {
   }
 
   async function deleteGalleryItem(id: string) {
-    if (!window.confirm("Xóa item gallery này?")) {
-      return;
-    }
-
-    try {
-      await api(`/api/admin/gallery/items/${id}`, { method: "DELETE" });
-      setMessage("Đã xóa item gallery.");
-      await loadAdminData();
-    } catch (deleteError) {
-      setError(getErrorMessage(deleteError));
-    }
+    requestConfirmAction({
+      title: "Xóa item gallery này?",
+      description:
+        "Ảnh này sẽ bị gỡ khỏi gallery category hiện tại sau khi bạn xác nhận.",
+      confirmLabel: "Xóa item",
+      action: async () => {
+        try {
+          await api(`/api/admin/gallery/items/${id}`, { method: "DELETE" });
+          setMessage("Đã xóa item gallery.");
+          await loadAdminData();
+        } catch (deleteError) {
+          setError(getErrorMessage(deleteError));
+        }
+      },
+    });
   }
 
   async function saveSetting(event: FormEvent<HTMLFormElement>) {
@@ -624,46 +680,57 @@ export default function AdminDashboard() {
               {loading ? "Đang đăng nhập..." : "Đăng nhập"}
             </button>
           </form>
-          {renderMessage()}
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className={styles.page}>
-      <div className={styles.shell}>
-        <div className={styles.header}>
-          <div>
-            <h1 className={styles.title}>Admin MeoDecor</h1>
-            <p className={styles.subtitle}>
-              Media library, content CRUD, site settings và public data đồng bộ
-              cùng backend.
-            </p>
-          </div>
-          <div className={styles.row}>
-            <button
-              className={styles.buttonSecondary}
-              onClick={() => void loadAdminData()}
-            >
-              Làm mới dữ liệu
-            </button>
-            <button className={styles.buttonDanger} onClick={logout}>
-              Đăng xuất
-            </button>
-          </div>
-        </div>
-
-        {renderMessage()}
-
-        <div className={styles.layout}>
-          <aside className={styles.sidebar}>
+          return (
+            <>
+              <div className={styles.page}>
+                <div className={styles.loginCard}>
+                  <h1 className={styles.title}>Admin MeoDecor</h1>
+                  <p className={styles.subtitle}>
+                    Đăng nhập để quản trị nội dung, media và site settings.
+                  </p>
+                  <form className={styles.formGrid} onSubmit={handleLogin}>
+                    <input
+                      className={styles.input}
+                      value={username}
+                      onChange={(e) => setUsername(e.target.value)}
+                      placeholder="Username"
+                    />
+                    <input
+                      className={styles.input}
+                      type="password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="Password"
+                    />
+                    <button
+                      className={`${styles.button} ${styles.full}`}
+                      disabled={loading}
+                      type="submit"
+                    >
+                      {loading ? "Đang đăng nhập..." : "Đăng nhập"}
+                    </button>
+                  </form>
+                  {renderMessage()}
+                </div>
+              </div>
+              <ConfirmActionDialog
+                open={Boolean(confirmDialog)}
+                onOpenChange={handleConfirmOpenChange}
+                title={confirmDialog?.title ?? "Xác nhận thao tác"}
+                description={confirmDialog?.description ?? ""}
+                confirmLabel={confirmDialog?.confirmLabel ?? "Xóa"}
+                loading={confirmLoading}
+                onConfirm={handleConfirmAction}
+              />
+            </>
+          );
             {[
               ["dashboard", "Tổng quan"],
               ["media", "Media Library"],
-              ["events", "Sự kiện"],
-              ["pricing", "Bảng giá"],
-              ["gallery", "Gallery"],
+          <>
+            <div className={styles.page}>
+              <div className={styles.shell}>
+                <div className={styles.header}>
               ["settings", "Site Settings"],
             ].map(([key, label]) => (
               <button
@@ -1582,7 +1649,16 @@ export default function AdminDashboard() {
           </main>
         </div>
       </div>
-    </div>
+      <ConfirmActionDialog
+        open={Boolean(confirmDialog)}
+        onOpenChange={handleConfirmOpenChange}
+        title={confirmDialog?.title ?? "Xác nhận thao tác"}
+        description={confirmDialog?.description ?? ""}
+        confirmLabel={confirmDialog?.confirmLabel ?? "Xóa"}
+        loading={confirmLoading}
+        onConfirm={handleConfirmAction}
+      />
+    </>
   );
 }
 

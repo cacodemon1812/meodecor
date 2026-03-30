@@ -1,0 +1,129 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 999;
+  background: rgba(15, 23, 42, 0.58);
+  backdrop-filter: blur(4px);
+  animation: overlayFadeIn 160ms ease-out;
+}
+
+.content {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  z-index: 1000;
+  width: min(92vw, 520px);
+  transform: translate(-50%, -50%);
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  border-radius: 24px;
+  background: linear-gradient(180deg, #ffffff 0%, #fff7f7 100%);
+  box-shadow: 0 24px 80px rgba(15, 23, 42, 0.28);
+  padding: 24px;
+  display: grid;
+  gap: 18px;
+  animation: contentFadeIn 180ms ease-out;
+}
+
+.header {
+  display: grid;
+  gap: 8px;
+}
+
+.title {
+  margin: 0;
+  font-size: 1.1rem;
+  line-height: 1.4;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.description {
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.65;
+  color: #475569;
+}
+
+.footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.button {
+  min-width: 118px;
+  height: 44px;
+  border-radius: 14px;
+  border: 1px solid transparent;
+  padding: 0 18px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  transition:
+    background-color 160ms ease,
+    border-color 160ms ease,
+    color 160ms ease,
+    transform 160ms ease,
+    opacity 160ms ease;
+}
+
+.button:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+  transform: none;
+}
+
+.buttonCancel {
+  background: #ffffff;
+  border-color: #d7dee8;
+  color: #334155;
+}
+
+.buttonCancel:hover:not(:disabled) {
+  background: #f8fafc;
+}
+
+.buttonConfirm {
+  background: #dc2626;
+  color: #ffffff;
+  box-shadow: 0 10px 24px rgba(220, 38, 38, 0.24);
+}
+
+.buttonConfirm:hover:not(:disabled) {
+  background: #b91c1c;
+}
+
+@media (max-width: 640px) {
+  .content {
+    width: calc(100vw - 24px);
+    padding: 20px;
+    border-radius: 20px;
+  }
+
+  .footer {
+    flex-direction: column-reverse;
+  }
+
+  .button {
+    width: 100%;
+  }
+}
+
+@keyframes overlayFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes contentFadeIn {
+  from {
+    opacity: 0;
+    transform: translate(-50%, calc(-50% + 10px)) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
